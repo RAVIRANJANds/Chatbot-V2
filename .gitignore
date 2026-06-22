@@ -1,0 +1,6 @@
+backend/Data/credentials.json
+mediseller-chatbot-569329a0d9b6.json
+*.xlsx
+*.csv
+__pycache__/
+*.pyc

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mediseller Support</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="chat-container">
+
+    <div class="chat-header">
+
+    <div class="company-logo">
+        <img src="https://tse3.mm.bing.net/th/id/OIP.ZCnMt1XqPZqMKyUJgQQlMQAAAA?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+             alt="Mediseller Logo">
+    </div>
+
+    <!-- Chat Icon -->
+    <div class="chat-icon">
+        💬
+    </div>
+
+    <h2>Mediseller Support</h2>
+
+</div>
+    <div class="chat-body" id="chatBody">
+
+
+
+        <button class="option-btn" onclick="selectOption('Track My Order')">
+            Track My Order
+        </button>
+
+        <button class="option-btn" onclick="selectOption('Product Reorder')">
+            Product Reorder
+        </button>
+
+        <button class="option-btn" onclick="selectOption('Raise a Ticket')">
+            Raise a Ticket
+        </button>
+
+        <button class="option-btn" onclick="selectOption('FAQs')">
+            FAQs
+        </button>
+
+        <button class="option-btn" onclick="selectOption('WhatsApp Support')">
+            WhatsApp Support
+        </button>
+
+        <button class="option-btn" onclick="selectOption('Human Agent')">
+            Human Agent
+        </button>
+
+    </div>
+
+    <div class="chat-footer">
+        <input
+            type="text"
+            id="userInput"
+            placeholder="Type your response here..."
+        >
+
+        <button onclick="sendMessage()">
+            Send
+        </button>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

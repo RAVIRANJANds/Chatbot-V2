@@ -1,0 +1,14 @@
+[33mcommit 5227831efa67ad9144dd7f93aad0bd6b4bc16614[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: RAVIRANJANds <lr4674092@gmail.com>
+Date:   Mon Jun 22 08:46:54 2026 +0530
+
+    Initial Commit
+
+.gitignore
+backend/Data/Book1.xlsx
+backend/Data/credentials.json
+backend/Data/customer_queries.xlsx
+backend/Data/faq.json
+backend/Data/orders.csv
+backend/app.py
+script.js
