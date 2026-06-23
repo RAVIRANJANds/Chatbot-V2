@@ -4,7 +4,7 @@ import os
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
-
+import google.generativeai as genai
 app = Flask(__name__)
 CORS(app)
 
@@ -235,7 +235,58 @@ def get_faq():
             "error": str(e)
         })
 
+genai.configure(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
 
+model = genai.GenerativeModel("gemini-2.0-flash")
+
+
+
+
+# ==================================
+# GEMINI AI CHAT
+# ==================================
+
+@app.route("/chat-ai", methods=["POST"])
+def chat_ai():
+
+    try:
+
+        data = request.json
+
+        message = data.get("message", "")
+
+        prompt = f"""
+        You are Mediseller Support Assistant.
+
+        Company: Mediseller Pharma
+
+        Rules:
+        - Reply professionally.
+        - Keep answers short.
+        - If user wants order status, ask them to use Track My Order.
+        - If user wants ticket support, ask them to use Raise a Ticket.
+        - If user wants reorder, ask them to use Product Reorder.
+        - Reply in the same language as the user.
+        - If user speaks Hindi, reply in Hindi.
+        - If user speaks English, reply in English.
+
+        User:
+        {message}
+        """
+
+        response = model.generate_content(prompt)
+
+        return jsonify({
+            "reply": response.text
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "reply": str(e)
+        }), 500
 # ==================================
 # HEALTH CHECK
 # ==================================

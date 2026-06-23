@@ -257,13 +257,38 @@ Total Amount: ₹${data.total_amount}`,
             conversationState = "idle";
             break;
 
-        default:
+default:
 
-            updateChatUI(
-                "Thank you. Our team has received your message.",
-                "bot"
-            );
+    try {
 
+        const response = await fetch(
+            `${API_URL}/chat-ai`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: text
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        updateChatUI(
+            data.reply,
+            "bot"
+        );
+
+    } catch (error) {
+
+        updateChatUI(
+            "Sorry, AI Assistant is currently unavailable.",
+            "bot"
+        );
+
+    }
     }
 
     input.value = "";
