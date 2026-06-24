@@ -285,6 +285,12 @@ Total Amount: ₹${data.total_amount}`,
 
 default:
 
+    // Loading Message
+    updateChatUI(
+    "🤖 Mediseller Assistant is typing...",
+    "bot"
+    );
+
     try {
 
         const response = await fetch(
@@ -302,12 +308,39 @@ default:
 
         const data = await response.json();
 
+        // Typing message remove karo
+        const messages =
+            document.querySelectorAll(".bot-message");
+
+        const lastMessage =
+            messages[messages.length - 1];
+
+        if (
+            lastMessage &&
+            lastMessage.innerText === "🤖 Mediseller Assistant is typing..."
+        ) {
+            lastMessage.remove();
+        }
+
         updateChatUI(
             data.reply,
             "bot"
         );
 
     } catch (error) {
+
+        const messages =
+            document.querySelectorAll(".bot-message");
+
+        const lastMessage =
+            messages[messages.length - 1];
+
+        if (
+            lastMessage &&
+            lastMessage.innerText === "🤖 Mediseller Assistant is typing..."
+        ) {
+            lastMessage.remove();
+        }
 
         updateChatUI(
             "Sorry, AI Assistant is currently unavailable.",
@@ -374,7 +407,7 @@ function selectOption(option) {
             case "Product Reorder":
 
                 updateChatUI(
-                    "Please enter correct Order No or Product Name:",
+                    "Please enter correct Order No :",
                     "bot"
                 );
 
@@ -432,10 +465,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const input = document.getElementById("userInput");
 
-    input.addEventListener("keypress", function (e) {
+    input.addEventListener("keydown", function (e) {
 
         if (e.key === "Enter") {
-
+            e.preventDefault();
             sendMessage();
 
         }
