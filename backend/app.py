@@ -1,12 +1,55 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import os
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 import google.generativeai as genai
-app = Flask(__name__)
-CORS(app)
+
+from pydantic import BaseModel
+
+# ==========================
+# REQUEST MODELS
+# ==========================
+
+class SaveDataRequest(BaseModel):
+    session_id: str
+    mobile: str = ""
+    query: str = ""
+
+class OrderRequest(BaseModel):
+    order_id: str
+
+class TicketRequest(BaseModel):
+    mobile: str
+    issue: str
+
+class VerifyOrderRequest(BaseModel):
+    order_no: str
+
+class ReorderRequest(BaseModel):
+    order_no: str
+
+class ChatRequest(BaseModel):
+    message: str
+# ==================================
+# FASTAPI APP
+# ==================================
+
+app = FastAPI(
+    title="Mediseller Chatbot API",
+    version="1.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],      # Production me domain specify karna
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # ==================================
 # GOOGLE SHEET CONFIG
@@ -17,13 +60,13 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SHEET_ID = "1UyvjshQcX7GR_IWao82dGTZ0IaGfktQMoFB0XmVIPIE"
 
 if os.path.exists("/etc/secrets/credentials.json"):
-    CREDS_FILE = "/etc/secrets/credentials.json"   # Render
+    CREDS_FILE = "/etc/secrets/credentials.json"
 else:
     CREDS_FILE = os.path.join(
         BASE_DIR,
         "Data",
         "credentials.json"
-    )   # Local
+    )
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -61,135 +104,139 @@ except Exception as e:
 def get_sheet(sheet_name):
     return spreadsheet.worksheet(sheet_name)
 
-
-# ==================================
+ #==================================
 # SAVE CHAT DATA
 # ==================================
 
-@app.route("/save-data", methods=["POST"])
-def save_data():
+@app.post("/save-data")
+async def save_data(data: SaveDataRequest):
 
     try:
-
-        data = request.json
-
-        mobile = data.get("mobile", "")
-        query = data.get("query", "")
 
         sheet = get_sheet("Bot event")
 
+        records = sheet.get_all_values()
+
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # Skip Header Row
+        for i in range(1, len(records)):
+
+            if len(records[i]) > 1 and str(records[i][1]).strip() == str(data.session_id).strip():
+
+                old_chat = ""
+
+                if len(records[i]) >= 4:
+                    old_chat = records[i][3]
+
+                new_chat = old_chat.strip()
+
+                if new_chat:
+                    new_chat += "\n" + data.query
+                else:
+                    new_chat = data.query
+
+                sheet.update_cell(i + 1, 1, timestamp)
+                sheet.update_cell(i + 1, 4, new_chat)
+
+                return {
+                    "status": "updated"
+                }
+
+        # New Session
         sheet.append_row([
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            mobile,
-            query
+            timestamp,
+            data.session_id,
+            data.mobile,
+            data.query
         ])
 
-        return jsonify({
-            "status": "success"
-        })
+        return {
+            "status": "created"
+        }
 
     except Exception as e:
 
-        return jsonify({
-            "status": "error",
-            "error": str(e)
-        }), 500
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
 
 
-# ==================================
-# TRACK ORDER
-# ==================================
-
-@app.route("/track-order", methods=["POST"])
-def track_order():
+@app.post("/track-order")
+async def track_order(data: OrderRequest):
 
     try:
 
-        data = request.json
-
-        order_no = str(
-            data.get("order_id", "")
-        ).strip().upper()
+        # User input ko normalize karo
+        order_no = str(data.order_id).strip().upper()
 
         sheet = get_sheet("Master sheet")
-
         records = sheet.get_all_records()
 
         for row in records:
 
+            # Sheet value ko normalize karo
             current_order = str(
                 row.get("Order No", "")
             ).strip().upper()
 
             if current_order == order_no:
 
-                return jsonify({
+                return {
                     "found": True,
                     "order_no": row.get("Order No", ""),
-                    "client_name": row.get("Client Name", ""),
-                    "contact_number": row.get("Contact Number", ""),
-                    "order_details": row.get("Order Details", ""),
-                    "total_amount": row.get("Total Amount", ""),
-                    "poc": row.get("POC", ""),
-                    "client_type": row.get("Client Type", "")
-                })
+                    "dispatch_status": row.get("Dispatch Status", "").strip().lower(),
+                    "tracking_number": row.get("Tracking Number", ""),
+                    "tracking_url": row.get("Tracking Url", ""),
+                    "logistic_name": row.get("Logistic Name", ""),
+                    "delivery_type": row.get("Delivery Type", ""),
+                    "order_confirmation": row.get("Order Confirmation", ""),
+                    "courier_type": row.get("Order Type", "")
+                }
 
-        return jsonify({
+        return {
             "found": False
-        })
+        }
 
     except Exception as e:
 
-        return jsonify({
-            "found": False,
-            "error": str(e)
-        })
-
-
-# ==================================
-# CREATE TICKET
-# ==================================
-
-@app.route("/create-ticket", methods=["POST"])
-def create_ticket():
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+@app.post("/create-ticket")
+async def create_ticket(data: TicketRequest):
 
     try:
-
-        data = request.json
-
-        mobile = data.get("mobile", "")
-        issue = data.get("issue", "")
 
         sheet = get_sheet("Ticket")
 
         sheet.append_row([
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            mobile,
-            issue,
+            data.mobile,
+            data.issue,
             "Open"
         ])
 
-        return jsonify({
+        return {
             "status": "success"
-        })
+        }
 
     except Exception as e:
 
-        return jsonify({
-            "status": "error",
-            "error": str(e)
-        })
-
-@app.route("/verify-order", methods=["POST"])
-def verify_order():
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.post("/verify-order")
+async def verify_order(data: VerifyOrderRequest):
 
     try:
 
-        data = request.json
-
-        order_no = str(
-            data.get("order_no", "")
-        ).strip().upper()
+        order_no = str(data.order_no).strip().upper()
 
         sheet = get_sheet("Master sheet")
 
@@ -203,94 +250,73 @@ def verify_order():
 
             if current_order == order_no:
 
-                return jsonify({
+                return {
                     "found": True
-                })
+                }
 
-        return jsonify({
+        return {
             "found": False
-        })
+        }
 
     except Exception as e:
 
-        return jsonify({
-            "found": False,
-            "error": str(e)
-        })
-# ==================================
-# CREATE REORDER
-# ==================================
-
-@app.route("/create-reorder", methods=["POST"])
-def create_reorder():
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+    
+@app.post("/create-reorder")
+async def create_reorder(data: ReorderRequest):
 
     try:
-
-        data = request.json
-
-        order_no = data.get("order_no", "")
 
         sheet = get_sheet("Re-orders")
 
         sheet.append_row([
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            order_no
+            data.order_no
         ])
 
-        return jsonify({
+        return {
             "status": "success"
-        })
+        }
 
     except Exception as e:
 
-        return jsonify({
-            "status": "error",
-            "error": str(e)
-        })
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+@app.get("/faq")
+async def get_faq():
 
-
-# ==================================
-# GET FAQ
-# ==================================
-
-@app.route("/faq", methods=["GET"])
-def get_faq():
     try:
 
         sheet = get_sheet("FAQ")
 
         records = sheet.get_all_records()
 
-        return jsonify(records)
+        return records
 
     except Exception as e:
 
-        return jsonify({
-            "status": "error",
-            "error": str(e)
-        })
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 
 genai.configure(
     api_key=os.getenv("GEMINI_API_KEY")
 )
-
-model = genai.GenerativeModel("gemini-2.0-flash")
-
-
-
-
-# ==================================
-# GEMINI AI CHAT
-# ==================================
-
-@app.route("/chat-ai", methods=["POST"])
-def chat_ai():
+@app.post("/chat-ai")
+async def chat_ai(data: ChatRequest):
 
     try:
 
-        data = request.json
-
-        message = data.get("message", "")
+        model = genai.GenerativeModel(
+            "gemini-2.0-flash"
+        )
 
         prompt = f"""
         You are Mediseller Support Assistant.
@@ -304,46 +330,27 @@ def chat_ai():
         - If user wants ticket support, ask them to use Raise a Ticket.
         - If user wants reorder, ask them to use Product Reorder.
         - Reply in the same language as the user.
-        - If user speaks Hindi, reply in Hindi.
-        - If user speaks English, reply in English.
 
         User:
-        {message}
+        {data.message}
         """
 
         response = model.generate_content(prompt)
 
-        return jsonify({
+        return {
             "reply": response.text
-        })
+        }
 
     except Exception as e:
 
-        print("Gemini Error:", e)
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+@app.get("/")
+async def home():
 
-        return jsonify({
-            "reply": "Sorry, AI Assistant is temporarily unavailable. Please try again later."
-        }), 500
-# ==================================
-# HEALTH CHECK
-# ==================================
-
-@app.route("/")
-def home():
-
-    return jsonify({
+    return {
         "status": "running",
         "message": "Mediseller Chatbot API Running"
-    })
-
-
-# ==================================
-# RUN APP
-# ==================================
-
-if __name__ == "__main__":
-
-    app.run(
-        host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000))
-    )
+    }#
