@@ -4,7 +4,7 @@
 
 
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://chatbot-v2-eqxa.onrender.com";
 const sessionId = Date.now().toString();
 // ===============================
 // STATE TRACKER
