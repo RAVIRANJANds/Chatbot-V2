@@ -2,8 +2,10 @@
 // API URL
 // ===============================
 
-const API_URL = "https://mediseller-chatbot.onrender.com";
 
+
+const API_URL = "http://127.0.0.1:8000";
+const sessionId = Date.now().toString();
 // ===============================
 // STATE TRACKER
 // ===============================
@@ -24,7 +26,11 @@ async function saveToBackend(data) {
             headers: {
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                session_id: sessionId,
+                mobile: data.mobile,
+                query: data.query
+            })
         });
 
     } catch (err) {
@@ -50,7 +56,11 @@ function createMessage(text, sender) {
             ? "user-message"
             : "bot-message";
 
-    div.innerText = text;
+    if (sender === "bot") {
+    div.innerHTML = text;
+} else {
+    div.textContent = text;
+}
 
     chatBody.appendChild(div);
 
@@ -99,9 +109,9 @@ async function sendMessage() {
 
         userMobile = text;
 
-        await saveToBackend({
-            mobile: userMobile,
-            query: "Mobile Verified"
+        saveToBackend({
+        mobile: userMobile,
+        query: "Mobile Verified"
         });
 
         updateChatUI(
@@ -119,10 +129,30 @@ async function sendMessage() {
     // SAVE CHAT
     // ---------------------------
 
-    await saveToBackend({
-        mobile: userMobile,
-        query: text
-    });
+    saveToBackend({
+    mobile: userMobile,
+    query: text
+});
+
+const msg = text.toLowerCase().trim();
+
+if (["hi","hello","hey"].includes(msg)) {
+    updateChatUI("Hello 👋 How can I help you today?", "bot");
+    input.value = "";
+    return;
+}
+
+if (["thanks","thank you","thank u","thx"].includes(msg)) {
+    updateChatUI("You're welcome 😊", "bot");
+    input.value = "";
+    return;
+}
+
+if (["bye","goodbye"].includes(msg)) {
+    updateChatUI("Have a great day! 👋", "bot");
+    input.value = "";
+    return;
+}
 
     // ---------------------------
     // STATES
@@ -151,32 +181,97 @@ async function sendMessage() {
 
                 if (data.found) {
 
-                    updateChatUI(
-`✅ Order Found
+                const status = (data.dispatch_status || "").trim().toLowerCase();
+                const displayStatus = status
+                .split(" ")
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(" ");
 
-Order No: ${data.order_no}
+                if (status === "dispatched") {
 
-Client Name: ${data.client_name}
+               updateChatUI(`
+            ✅ Your order has been dispatched.
 
-Contact Number: ${data.contact_number}
+            📦 <b>Order ID:</b> ${data.order_no}
 
-Order Details:
-${data.order_details}
+            🚚 <b>Courier Partner:</b> ${data.logistic_name}
 
-Total Amount: ₹${data.total_amount}`,
-                        "bot"
-                    );
+            📦 <b>Tracking Number:</b><br>
+            ${data.tracking_number || "Not Available"}<br><br>
+            🔗 <b>Track Your Shipment:</b><br>
 
-                } else {
+            ${
+            data.tracking_url
+        ?   `<a href="${data.tracking_url}"
+                 target="_blank"
+                style="color:#ffffff;
+                    text-decoration:underline;
+                    word-break:break-all;">
+             ${data.tracking_url}
+           </a>`
+        : "Not Available"
+        }
 
-                    updateChatUI(
-                        "❌ Order not found.",
-                        "bot"
-                    );
+<br><br>
 
+📌 <b>Status:</b> ${displayStatus}
+  
+
+            Thank you for shopping with Mediseller.
+
+            – Mediseller Support Team
+            `, "bot");
                 }
 
-            } catch (error) {
+                else if (status === "returned") {
+
+                updateChatUI(
+                `⚠️ Your order was returned due to a delivery issue.
+                No worries—please choose one option:
+                🚀 Fast Delivery (Air – Trackon)
+                ₹300 (Prepaid only)
+                24–72 hrs
+                🚚 Normal Delivery (Trackon)
+                ₹200
+                3–4 Days
+                🚚 Standard Courier (COD)
+                ₹150
+                5–6 Days
+                ❗ If you cancel the order, ₹200 RTO charges will apply and the balance will be adjusted in your next order.
+                Please let us know your choice.
+                – Mediseller Support Team`,
+                "bot"
+                );
+                }
+            else if (status === "cancelled") {
+            updateChatUI(
+            `❌ Your order has been cancelled.
+            If you need any assistance or would like to place a new order, please contact Mediseller Support.
+            – Mediseller Support Team`,
+            "bot"
+            );
+            }
+            else {
+        updateChatUI(
+`       🕒 Your order has been confirmed.
+        📦 Order ID: ${data.order_no}
+        📌 Current Status: ${displayStatus}
+        Your order will be dispatched shortly.
+        – Mediseller Support Team`,
+        "bot"
+        );
+        }
+        } else {
+
+        updateChatUI(
+        "❌ Order not found.",
+        "bot"
+        );
+
+        }              
+      
+
+            }catch (error) {
 
                 updateChatUI(
                     "❌ Unable to fetch order details.",

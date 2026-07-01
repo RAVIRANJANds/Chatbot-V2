@@ -1,9 +1,6 @@
-Flask
-flask-cors
+fastapi
+uvicorn
 gspread
 google-auth
-openpyxl
-pandas
-requests
-gunicorn
 google-generativeai
+python-dotenv

@@ -6,11 +6,7 @@
 }
 
 body{
-    background:rgb(245, 243, 243); 
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-
+    background:#f5f3f3;
     height:100vh;
     display:flex;
     justify-content:center;
@@ -18,203 +14,203 @@ body{
 }
 
 .chat-container{
+
     width:450px;
     height:700px;
-    background:black;
+
+    background:#000;
+
     border-radius:18px;
+
     overflow:hidden;
-    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+
+    display:flex;
+    flex-direction:column;
+
+    box-shadow:0 10px 25px rgba(0,0,0,.20);
+
 }
 
 .chat-header{
+
     height:90px;
+
     display:flex;
     align-items:center;
     justify-content:center;
+
     gap:12px;
-    background:rgb(15, 15, 15);
-    border-bottom:1px solid #ddd;
+
+    background:#111;
+
+    border-bottom:1px solid #333;
+
+    flex-shrink:0;
+
 }
 
 .chat-icon{
+
     width:50px;
     height:50px;
-    background:rgb(238, 9, 9);
+
+    background:#ee0909;
+
     border-radius:12px;
+
     display:flex;
-    align-items:center;
     justify-content:center;
-    color:rgb(63, 59, 59);
+    align-items:center;
+
     font-size:24px;
+
+    color:#fff;
+
 }
 
 .company-logo{
+
     width:90px;
     height:40px;
+
     display:flex;
-    align-items:center;
     justify-content:center;
+    align-items:center;
+
 }
 
 .company-logo img{
+
     width:100%;
     height:100%;
+
     object-fit:contain;
+
 }
 
 .chat-header h2{
-    font-size:22px;
-    font-weight:700;
-    color:#f4f6fa;
-}
-.logo-box{
-    width:50px;
-    height:50px;
-    background:#ee5641;
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    border-radius:12px;
-    font-size:22px;
-}
 
-.chat-header h2{
-    color:white;
+    color:#fff;
+
+    font-size:22px;
+
 }
 
 .chat-body{
-    height:520px;
+
+    flex:1;
+
     overflow-y:auto;
+
     padding:15px;
-    background:#000000;
+
+    background:#000;
 
 }
 
-.bot-message{
-    background:rgb(238, 9, 9);
-    padding:14px;
-    border-radius:12px;
-    margin-bottom:15px;
-    width:90%;
-    box-shadow:0 2px 5px rgba(241, 240, 240, 0.08);
-    line-height:1.6;
-}
-
-.option-btn{
-    display:block;
-    width:170px;
-    padding:15px;
-    margin-bottom:12px;
-    border:none;
-    background:rgb(247, 7, 27);
-    border-radius:10px;
-    text-align:left;
-    font-size:16px;
-    font-weight:600;
-    cursor:pointer;
-    box-shadow:0 2px 5px rgba(0,0,0,0.1);
-    transition:0.3s;
-}
-
-.option-btn:hover{
-    background:#4f6ef7;
-    color:rgb(69, 15, 218);
-}
-
-.user-message{
-    background:#f7634f;
-    color:rgb(34, 33, 33);
-    padding:12px;
-    border-radius:12px;
-    width:max-content;
-    max-width:80%;
-    margin-left:auto;
-    margin-bottom:12px;
-}
+/* ===========================
+   CHAT FOOTER
+=========================== */
 
 .chat-footer{
-    height:90px;
     display:flex;
     align-items:center;
     padding:15px;
-    border-top:1px solid #ddd;
-    background:rgb(2, 2, 2);
+    background:#000;
+    border-top:1px solid #333;
+    gap:10px;
+    flex-shrink:0;
 }
 
 .chat-footer input{
     flex:1;
     padding:14px;
-    border:1px solid #ccc;
+    border:1px solid #444;
     border-radius:10px;
     outline:none;
-}
-
-.chat-footer button{
-    margin-left:10px;
-    padding:14px 22px;
-    border:none;
-    border-radius:10px;
-    background:#121213;
-    color:rgb(247, 244, 244);
-    cursor:pointer;
-    font-weight:bold;
-   
-}
-/* =========================
-   MAKE ALL TEXT WHITE
-========================= */
-
-.chat-body,
-.bot-message,
-.option-btn,
-.user-message,
-.chat-footer,
-.chat-footer input,
-.chat-footer input::placeholder,
-.chat-header h2 {
-    color: white !important;
-}
-
-/* Option Buttons */
-.option-btn{
-    background: rgb(247, 7, 27);
-    color: white !important;
-}
-
-/* Bot Messages */
-.bot-message{
-    
-    background: rgb(238, 9, 9);
-    color: white !important;
-}
-
-/* User Messages */
-.user-message{
-    background: #f7634f;
-    color: white !important;
-}
-
-/* Input Box */
-.chat-footer input{
-    background: #1f1f1f;
-    color: white !important;
+    background:#1f1f1f;
+    color:#fff;
+    font-size:15px;
 }
 
 .chat-footer input::placeholder{
-    color: #cccccc;
+    color:#bdbdbd;
 }
 
-/* Send Button */
 .chat-footer button{
-    background: #121213;
-    color: white !important;
+    padding:14px 22px;
+    border:none;
+    border-radius:10px;
+    background:#ee0910;
+    color:#fff;
+    cursor:pointer;
+    font-weight:600;
+    transition:.3s;
 }
 
-/* Header */
-.chat-header h2{
-    color: white !important;
+.chat-footer button:hover{
+    background:#c70015;
 }
+
+/* ===========================
+   QUICK ACTION BAR
+=========================== */
+
+.quick-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:12px;
+    background:#111;
+    border-top:1px solid #333;
+}
+
+.quick-actions .option-btn{
+    flex:1;
+    min-width:130px;
+    margin:0;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    background:#f7071b;
+    color:#fff;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.quick-actions .option-btn:hover{
+    background:#d10019;
+}
+
+/* ===========================
+   MESSAGES
+=========================== */
+
+.bot-message{
+    background:#ff001f;
+    color:#fff;
+    padding:14px;
+    border-radius:12px;
+    margin-bottom:15px;
+    max-width:80%;
+    line-height:1.6;
+    word-break:break-word;
+}
+
+.user-message{
+    background:#f7634f;
+    color:#fff;
+    padding:12px;
+    border-radius:12px;
+    margin-left:auto;
+    margin-bottom:12px;
+    max-width:80%;
+    width:fit-content;
+    word-break:break-word;
+}
+
 .bot-message-wrapper{
     display:flex;
     align-items:flex-start;
@@ -236,11 +232,42 @@ body{
     object-fit:cover;
 }
 
-.bot-message{
-    background:#ff001f;
-    color:white;
-    padding:14px;
-    border-radius:12px;
-    max-width:80%;
-    line-height:1.6;
+/* ===========================
+   TEXT COLORS
+=========================== */
+
+.chat-body,
+.bot-message,
+.user-message,
+.chat-footer,
+.chat-footer input,
+.chat-footer input::placeholder,
+.chat-header h2{
+    color:#fff;
+}
+
+/* ===========================
+   MOBILE
+=========================== */
+
+@media (max-width:480px){
+
+    .chat-container{
+        width:100%;
+        height:100vh;
+        border-radius:0;
+    }
+
+    .quick-actions{
+        gap:8px;
+    }
+
+    .quick-actions .option-btn{
+        min-width:48%;
+        font-size:13px;
+    }
+
+    .chat-footer input{
+        font-size:14px;
+    }
 }
