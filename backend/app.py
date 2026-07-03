@@ -19,11 +19,12 @@ class SaveDataRequest(BaseModel):
     query: str = ""
 
 class OrderRequest(BaseModel):
-    order_id: str
+    mobile: str
 
 class TicketRequest(BaseModel):
     mobile: str
-    issue: str
+    category: str
+    issue: str = " "
 
 class VerifyOrderRequest(BaseModel):
     order_no: str
@@ -169,38 +170,60 @@ async def track_order(data: OrderRequest):
 
     try:
 
-        # User input ko normalize karo
-        order_no = str(data.order_id).strip().upper()
+        mobile = str(data.mobile).strip().upper()
+
+        print("\n=================================")
+        print("User Mobile :", mobile)
 
         sheet = get_sheet("Master sheet")
         records = sheet.get_all_records()
 
+        print("Headers :", records[0].keys())
+        print("First Row :", records[0])
+
+        latest_order = None
+
         for row in records:
 
-            # Sheet value ko normalize karo
-            current_order = str(
-                row.get("Order No", "")
+            current_mobile = str(
+                row.get("Mobile", "")
             ).strip().upper()
 
-            if current_order == order_no:
+            print("---------------------------------")
+            print("Sheet Mobile :", current_mobile)
+            print("User Mobile  :", mobile)
 
-                return {
-                    "found": True,
-                    "order_no": row.get("Order No", ""),
-                    "dispatch_status": row.get("Dispatch Status", "").strip().lower(),
-                    "tracking_number": row.get("Tracking Number", ""),
-                    "tracking_url": row.get("Tracking Url", ""),
-                    "logistic_name": row.get("Logistic Name", ""),
-                    "delivery_type": row.get("Delivery Type", ""),
-                    "order_confirmation": row.get("Order Confirmation", ""),
-                    "courier_type": row.get("Order Type", "")
-                }
+            if current_mobile == mobile:
+
+                print("✅ MATCH FOUND")
+
+                latest_order = row
+
+        print("Latest Order :", latest_order)
+
+        if latest_order:
+
+            return {
+                "found": True,
+                "order_no": latest_order.get("Order No", ""),
+                "dispatch_status": latest_order.get("Dispatch Status", "").strip().lower(),
+                "tracking_number": latest_order.get("Tracking Number", ""),
+                "tracking_url": latest_order.get("Tracking Url", ""),
+                "logistic_name": latest_order.get("Logistic Name", ""),
+                "delivery_type": latest_order.get("Delivery Type", ""),
+                "order_confirmation": latest_order.get("Order Confirmation Status", ""),
+                "courier_type": latest_order.get("Order Type", "")
+            }
+
+        print("❌ NO MATCH FOUND")
 
         return {
             "found": False
         }
 
     except Exception as e:
+
+        print("ERROR :", e)
 
         raise HTTPException(
             status_code=500,
@@ -216,6 +239,7 @@ async def create_ticket(data: TicketRequest):
         sheet.append_row([
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             data.mobile,
+            data.category,
             data.issue,
             "Open"
         ])

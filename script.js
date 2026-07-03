@@ -1,26 +1,13 @@
-// ===============================
-// API URL
-// ===============================
-
-
-
 const API_URL = "https://chatbot-v2-eqxa.onrender.com";
-const sessionId = Date.now().toString();
-// ===============================
-// STATE TRACKER
-// ===============================
 
 let conversationState = "awaiting_mobile";
 let userMobile = "";
-
-// ===============================
-// SAVE DATA TO BACKEND
-// ===============================
-
+let selectedTicketCategory = "";
+let isAnyOtherTicket = false;
+let isTrackOrderFlow = false;
+let hasViewedOrder = false;
 async function saveToBackend(data) {
-
     try {
-
         await fetch(`${API_URL}/save-data`, {
             method: "POST",
             headers: {
@@ -32,296 +19,154 @@ async function saveToBackend(data) {
                 query: data.query
             })
         });
-
     } catch (err) {
-
         console.error(err);
-
     }
-
 }
-
-// ===============================
-// MESSAGE UI
-// ===============================
-
 function createMessage(text, sender) {
-
     const chatBody = document.getElementById("chatBody");
-
     const div = document.createElement("div");
-
     div.className =
         sender === "user"
             ? "user-message"
             : "bot-message";
-
     if (sender === "bot") {
     div.innerHTML = text;
 } else {
     div.textContent = text;
 }
-
     chatBody.appendChild(div);
-
     chatBody.scrollTop = chatBody.scrollHeight;
-
 }
-
 function updateChatUI(text, sender) {
-
     createMessage(text, sender);
-
 }
-
-// ===============================
-// SEND MESSAGE
-// ===============================
-
 async function sendMessage() {
-
     const input = document.getElementById("userInput");
-
     const text = input.value.trim();
-
     if (!text) return;
-
     updateChatUI(text, "user");
+if (conversationState === "awaiting_mobile") {
 
-    // ---------------------------
-    // MOBILE VERIFICATION
-    // ---------------------------
+    userMobile = text;
 
-    if (conversationState === "awaiting_mobile") {
+    const mobileRegex = /^[6-9]\d{9}$/;
 
-        const mobileRegex = /^[6-9]\d{9}$/;
-
-        if (!mobileRegex.test(text)) {
-
-            updateChatUI(
-                "Please enter a valid 10-digit mobile number.",
-                "bot"
-            );
-
-            input.value = "";
-            return;
-        }
-
-        userMobile = text;
-
-        saveToBackend({
-        mobile: userMobile,
-        query: "Mobile Verified"
-        });
+    if (!mobileRegex.test(text)) {
 
         updateChatUI(
-            "Mobile number verified successfully.\n\nHow can we help you today?",
+            "Please enter a valid 10-digit mobile number.",
             "bot"
         );
-
-        conversationState = "idle";
 
         input.value = "";
         return;
     }
 
-    // ---------------------------
-    // SAVE CHAT
-    // ---------------------------
+    await saveToBackend({
+        mobile: userMobile,
+        query: "Mobile Verified"
+    });
 
-    saveToBackend({
+    if (isTrackOrderFlow) {
+
+        await fetchLatestOrder();
+
+        isTrackOrderFlow = false;
+        hasViewedOrder = true;
+
+    } else {
+
+        updateChatUI(
+            "✅ Mobile number verified successfully.<br><br>How can we help you today?",
+            "bot"
+        );
+
+    }
+
+    conversationState = "idle";
+    input.value = "";
+    return;
+}
+await saveToBackend({
     mobile: userMobile,
     query: text
 });
 
 const msg = text.toLowerCase().trim();
 
-if (["hi","hello","hey"].includes(msg)) {
-    updateChatUI("Hello 👋 How can I help you today?", "bot");
+if (["hi", "hello", "hey"].includes(msg)) {
+
+    updateChatUI(
+        "Hello 👋 How can I help you today?",
+        "bot"
+    );
+
     input.value = "";
     return;
 }
 
 if (["thanks","thank you","thank u","thx"].includes(msg)) {
-    updateChatUI("You're welcome 😊", "bot");
+
+    updateChatUI(
+        "You're welcome 😊",
+        "bot"
+    );
+
     input.value = "";
     return;
 }
 
 if (["bye","goodbye"].includes(msg)) {
-    updateChatUI("Have a great day! 👋", "bot");
+
+    updateChatUI(
+        "Have a great day! 👋",
+        "bot"
+    );
+
     input.value = "";
     return;
 }
 
-    // ---------------------------
-    // STATES
-    // ---------------------------
+switch(conversationState){
 
-    switch (conversationState) {
-
-        case "awaiting_order_id":
+            case "awaiting_ticket":
 
             try {
 
-                const response = await fetch(
-                     `${API_URL}/track-order`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            order_id: text
-                        })
-                    }
-                );
-
-                const data = await response.json();
-
-                if (data.found) {
-
-                const status = (data.dispatch_status || "").trim().toLowerCase();
-                const displayStatus = status
-                .split(" ")
-                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-                .join(" ");
-
-                if (status === "dispatched") {
-
-               updateChatUI(`
-            ✅ Your order has been dispatched.
-
-            📦 <b>Order ID:</b> ${data.order_no}
-
-            🚚 <b>Courier Partner:</b> ${data.logistic_name}
-
-            📦 <b>Tracking Number:</b><br>
-            ${data.tracking_number || "Not Available"}<br><br>
-            🔗 <b>Track Your Shipment:</b><br>
-
-            ${
-            data.tracking_url
-        ?   `<a href="${data.tracking_url}"
-                 target="_blank"
-                style="color:#ffffff;
-                    text-decoration:underline;
-                    word-break:break-all;">
-             ${data.tracking_url}
-           </a>`
-        : "Not Available"
-        }
-
-<br><br>
-
-📌 <b>Status:</b> ${displayStatus}
-  
-
-            Thank you for shopping with Mediseller.
-
-            – Mediseller Support Team
-            `, "bot");
+            await fetch(
+                `${API_URL}/create-ticket`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    mobile: userMobile,
+                    category: selectedTicketCategory,
+                    issue: text
+                    })
                 }
-
-                else if (status === "returned") {
-
-                updateChatUI(
-                `⚠️ Your order was returned due to a delivery issue.
-                No worries—please choose one option:
-                🚀 Fast Delivery (Air – Trackon)
-                ₹300 (Prepaid only)
-                24–72 hrs
-                🚚 Normal Delivery (Trackon)
-                ₹200
-                3–4 Days
-                🚚 Standard Courier (COD)
-                ₹150
-                5–6 Days
-                ❗ If you cancel the order, ₹200 RTO charges will apply and the balance will be adjusted in your next order.
-                Please let us know your choice.
-                – Mediseller Support Team`,
-                "bot"
-                );
-                }
-            else if (status === "cancelled") {
-            updateChatUI(
-            `❌ Your order has been cancelled.
-            If you need any assistance or would like to place a new order, please contact Mediseller Support.
-            – Mediseller Support Team`,
-            "bot"
             );
-            }
-            else {
-        updateChatUI(
-`       🕒 Your order has been confirmed.
-        📦 Order ID: ${data.order_no}
-        📌 Current Status: ${displayStatus}
-        Your order will be dispatched shortly.
-        – Mediseller Support Team`,
-        "bot"
-        );
+
+            updateChatUI(
+                "✅ Ticket created successfully.",
+                "bot"
+            );
+
+        } catch (e) {
+
+            updateChatUI(
+                "❌ Unable to create ticket.",
+                "bot"
+            );
         }
-        } else {
-
-        updateChatUI(
-        "❌ Order not found.",
-        "bot"
-        );
-
-        }              
-      
-
-            }catch (error) {
-
-                updateChatUI(
-                    "❌ Unable to fetch order details.",
-                    "bot"
-                );
-
-            }
-
-            conversationState = "idle";
-            break;
-
-        case "awaiting_ticket":
-
-            try {
-
-                await fetch(
-                    `${API_URL}/create-ticket`,
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            mobile: userMobile,
-                            issue: text
-                        })
-                    }
-                );
-
-                updateChatUI(
-                    "✅ Ticket created successfully.",
-                    "bot"
-                );
-
-            } catch (e) {
-
-                updateChatUI(
-                    "❌ Unable to create ticket.",
-                    "bot"
-                );
-
-            }
-
-            conversationState = "idle";
-            break;
-
+    selectedTicketCategory = "";
+    isAnyOtherTicket = false;
+    conversationState = "idle";  
+    break;
         case "awaiting_product":
-
             try {
-
                 const verifyResponse = await fetch(
                 `${API_URL}/verify-order`,
                 {
@@ -334,20 +179,15 @@ if (["bye","goodbye"].includes(msg)) {
                 })
             }
         );
-
-            const verifyData = await verifyResponse.json();
-
+           const verifyData = await verifyResponse.json();
             if (!verifyData || !verifyData.found) {
-
                 updateChatUI(
                     "❌ Invalid Order ID. Reorder can only be placed for existing orders.",
                     "bot"
                 );
-
             conversationState = "idle";
             break;
         }
-
         await fetch(
             `${API_URL}/create-reorder`,
             {
@@ -376,6 +216,7 @@ if (["bye","goodbye"].includes(msg)) {
     }
 
     conversationState = "idle";
+    selectedTicketCategory = "";
         break;
 
 default:
@@ -453,10 +294,9 @@ default:
 // OPTION BUTTONS
 // ===============================
 
-function selectOption(option) {
+async function selectOption(option) {
 
-    if (conversationState === "awaiting_mobile" && option !== "FAQs")
-         {
+    if (conversationState === "awaiting_mobile" && option !== "FAQs") {
 
         updateChatUI(
             "Please enter your mobile number first.",
@@ -467,46 +307,96 @@ function selectOption(option) {
     }
 
     updateChatUI(option, "user");
+setTimeout(async () => {
+    await saveToBackend({
+    mobile: userMobile,
+    query: option
+});
 
-    saveToBackend({
-        mobile: userMobile,
-        query: option
-    });
+    switch (option) {
 
-    setTimeout(() => {
+case "Track My Order":
 
-        switch (option) {
+    if (!userMobile) {
+        hasViewedOrder = false;
 
-            case "Track My Order":
+        isTrackOrderFlow = true;
+        conversationState = "awaiting_mobile";
 
-                updateChatUI(
-                    "Please enter your Order No:",
-                    "bot"
-                );
+        updateChatUI(
+            "📱 Please enter your mobile number.",
+            "bot"
+        );
 
-                conversationState = "awaiting_order_id";
+        break;
+    }
 
-                break;
+    if (!hasViewedOrder) {
+
+        await fetchLatestOrder();
+        break;
+    }
+
+    hasViewedOrder = false;
+    isTrackOrderFlow = true;
+    userMobile = "";
+    conversationState = "awaiting_mobile";
+
+    updateChatUI(
+        "📱 Please enter your mobile number.",
+        "bot"
+    );
+
+    break;
+
+
 
             case "Raise a Ticket":
 
-                updateChatUI(
-                    "Please describe your issue:",
-                    "bot"
-                );
+                updateChatUI(`
+                    <b>Please choose a category for your ticket.</b><br><br>
 
-                conversationState = "awaiting_ticket";
+                    <button class="ticket-btn"
+                    onclick="selectTicketCategory('Incomplete Order')">
+                    📦 Incomplete Order
+                    </button><br><br>
+
+                    <button class="ticket-btn"
+                    onclick="selectTicketCategory('Damaged Product')">
+                    📦 Damaged Product
+                    </button><br><br>
+
+                    <button class="ticket-btn"
+                    onclick="selectTicketCategory('Quality Issue')">
+                    ⭐ Quality Issue
+                    </button><br><br>
+
+                    <button class="ticket-btn"
+                    onclick="selectTicketCategory('Advance Paid but Order Not Received')">
+                    💳 Advance Paid but Order Not Received
+                    </button><br><br>
+
+                    <button class="ticket-btn"
+                    onclick="selectTicketCategory('Product Expiry')">
+                    📅 Product Expiry
+                    </button><br><br>
+
+                    <button class="ticket-btn"
+                    onclick="selectTicketCategory('Any Other')">
+                    ✍️ Any Other
+                    </button>
+                `, "bot");
 
                 break;
 
             case "Product Reorder":
 
+                conversationState = "awaiting_product";
+
                 updateChatUI(
-                    "Please enter correct Order No :",
+                    "Please enter your correct Order No:",
                     "bot"
                 );
-
-                conversationState = "awaiting_product";
 
                 break;
 
@@ -540,10 +430,215 @@ function selectOption(option) {
                     option,
                     "bot"
                 );
-
         }
 
     }, 500);
+
+}
+
+// ===============================
+// TICKET CATEGORY
+// ===============================
+
+async function selectTicketCategory(category) {
+
+    selectedTicketCategory = category;
+
+    // Any Other
+    if (category === "Any Other") {
+
+        isAnyOtherTicket = true;
+
+        conversationState = "awaiting_ticket";
+
+        updateChatUI(
+            "✍️ Please describe your issue.",
+            "bot"
+        );
+
+        return;
+    }
+
+    // Normal Categories
+    isAnyOtherTicket = false;
+    // Disable all ticket buttons after one click
+    document
+    .querySelectorAll(".ticket-btn")
+    .forEach(btn => btn.disabled = true);
+
+    try {
+
+        const response = await fetch(
+            `${API_URL}/create-ticket`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    mobile: userMobile,
+                    category: category,
+                    issue: ""
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (data.status === "success") {
+
+            updateChatUI(
+                `✅ Ticket created successfully.<br><br>
+                <b>Category:</b> ${category}<br><br>
+                Our support team will contact you shortly.`,
+                "bot"
+            );
+
+        } else {
+
+            updateChatUI(
+                "❌ Unable to create ticket.",
+                "bot"
+            );
+
+        }
+
+    } catch (e) {
+
+        updateChatUI(
+            "❌ Unable to create ticket.",
+            "bot"
+        );
+
+    }
+
+    selectedTicketCategory = "";
+    conversationState = "idle";
+
+}
+
+async function fetchLatestOrder() {
+
+    try {
+
+        updateChatUI(
+            "🔍 Fetching your latest order...",
+            "bot"
+        );
+
+        const response = await fetch(
+            `${API_URL}/track-order`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    mobile: userMobile
+                })
+            }
+        );
+
+        const data = await response.json();
+        const messages =
+        document.querySelectorAll(".bot-message");
+
+        const lastMessage =
+        messages[messages.length - 1];
+
+        if (
+        lastMessage &&
+        lastMessage.innerText === "🔍 Fetching your latest order..."
+        ){
+        lastMessage.remove();
+        }
+
+        if (!data.found) {
+
+            hasViewedOrder = true;
+            conversationState = "idle";
+            updateChatUI(
+                "❌ No order found for this mobile number.",
+                "bot"
+            );
+
+            return;
+
+        }
+
+        updateChatUI(
+
+`📦 <b>Order Details</b><br><br>
+
+🆔 <b>Order ID:</b><br>
+${data.order_no}<br><br>
+
+🚚 <b>Courier:</b><br>
+${data.logistic_name || "Not Available"}<br><br>
+
+📦 <b>Status:</b><br>
+${
+(data.dispatch_status || "Not Available")
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ")
+}<br><br>
+
+🔗 <b>Track Parcel:</b><br>
+
+${
+data.tracking_url
+?
+`<a href="${data.tracking_url}"
+target="_blank"
+style="
+color:#ffffff;
+text-decoration:underline;
+word-break:break-all;
+">
+${data.tracking_url}
+</a>`
+:
+"Not Available"
+}
+
+<br><br>
+
+📌 <b>Delivery Type:</b><br>
+${data.delivery_type||"Not Available"}<br><br>
+
+✅ <b>Order Confirmation:</b><br>
+${data.order_confirmation||"Pending"}
+
+`,
+"bot"
+        );
+    hasViewedOrder = true;
+    conversationState = "idle";
+
+    }
+
+catch(e){
+
+    const messages =
+        document.querySelectorAll(".bot-message");
+
+    const lastMessage =
+        messages[messages.length - 1];
+
+    if(
+        lastMessage &&
+        lastMessage.innerText === "🔍 Fetching your latest order..."
+    ){
+        lastMessage.remove();
+    }
+
+    updateChatUI(
+        "❌ Unable to fetch order details.",
+        "bot"
+    );
+
+}
 
 }
 
