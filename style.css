@@ -11,8 +11,7 @@
 
 body{
 
-    background:
-    radial-gradient(circle at top,#6b0000 0%,#1a0000 25%,#050505 60%,#000 100%);
+    background:#f4f6f8;
 
     min-height:100vh;
 
@@ -42,7 +41,7 @@ body{
 
     max-height:95vh;
 
-    background:#0b0b0b;
+    background:#ffffff;
 
     border-radius:28px;
 
@@ -52,15 +51,13 @@ body{
 
     flex-direction:column;
 
-    border:1px solid rgba(255,0,0,.25);
+    border:1px solid rgba(255,0,0,.15);
 
     box-shadow:
 
-    0 0 35px rgba(255,0,0,.18),
+    0 10px 45px rgba(0,0,0,.08);
 
-    0 25px 60px rgba(0,0,0,.65);
-
-    backdrop-filter:blur(12px);
+    backdrop-filter:none;
 
 }
 
@@ -80,19 +77,13 @@ body{
 
     gap:15px;
 
-    background:
-    linear-gradient(
-    180deg,
-    #7a0000,
-    #340000,
-    #120000
-    );
+    background:#ffffff;
 
-    border-bottom:1px solid rgba(255,0,0,.45);
+    border-bottom:2px solid #d10000;
 
     box-shadow:
 
-    0 4px 25px rgba(255,0,0,.35);
+    0 2px 10px rgba(0,0,0,.04);
 
     flex-shrink:0;
 
@@ -150,7 +141,7 @@ body{
 }
 .chat-header h2{
 
-    color:#fff;
+    color:#111111;
 
     font-size:22px;
 
@@ -171,13 +162,7 @@ body{
 
     padding:22px;
 
-    background:
-    linear-gradient(
-    180deg,
-    #080808,
-    #050505,
-    #000000
-    );
+    background:#ffffff;
 
     scroll-behavior:smooth;
 
@@ -194,7 +179,7 @@ body{
 
 .chat-body::-webkit-scrollbar-track{
 
-    background:#090909;
+    background:#f1f1f1;
 
 }
 
@@ -208,7 +193,7 @@ body{
 
 .chat-body::-webkit-scrollbar-thumb:hover{
 
-    background:#ff2b2b;
+    background:#a30000;
 
 }
 
@@ -231,9 +216,9 @@ body{
 
     gap:12px;
 
-    background:#0b0b0b;
+    background:#fafafa;
 
-    border-top:1px solid rgba(255,0,0,.25);
+    border-top:1px solid #eeeeee;
 
 }
 
@@ -247,11 +232,11 @@ body{
 
     border-radius:14px;
 
-    background:#121212;
+    background:#ffffff;
 
-    color:#fff;
+    color:#111111;
 
-    border:1px solid rgba(255,0,0,.30);
+    border:1px solid #dddddd;
 
     outline:none;
 
@@ -263,11 +248,11 @@ body{
 
 .chat-footer input:focus{
 
-    border-color:#ff3030;
+    border-color:#d10000;
 
     box-shadow:
 
-    0 0 12px rgba(255,0,0,.35);
+    0 0 8px rgba(209,0,0,.15);
 
 }
 
@@ -331,9 +316,9 @@ body{
 
     padding:16px;
 
-    background:#0b0b0b;
+    background:#fafafa;
 
-    border-top:1px solid rgba(255,0,0,.25);
+    border-top:1px solid #eeeeee;
 
 }
 
@@ -389,11 +374,11 @@ body{
 
 .bot-message{
 
-    background:#121212;
+    background:#f1f3f4;
 
-    color:#ffffff;
+    color:#111111;
 
-    border:1px solid rgba(255,0,0,.35);
+    border:1px solid #e0e0e0;
 
     border-radius:
 
@@ -417,7 +402,7 @@ body{
 
     box-shadow:
 
-    0 8px 20px rgba(0,0,0,.45);
+    0 2px 8px rgba(0,0,0,.03);
 
     animation:fadeIn .35s ease;
 
@@ -433,7 +418,7 @@ body{
     linear-gradient(
     180deg,
     #ff3b3b,
-    #a00000
+    #d10000
     );
 
     color:white;
@@ -464,7 +449,7 @@ body{
 
     box-shadow:
 
-    0 8px 20px rgba(255,0,0,.30);
+    0 4px 12px rgba(255,0,0,.15);
 
     animation:fadeIn .35s ease;
 
@@ -488,16 +473,16 @@ body{
 
     flex-shrink:0;
 
-    border:2px solid #ff2020;
+    border:2px solid #d10000;
 
     box-shadow:
 
-    0 0 18px rgba(255,0,0,.35);
+    0 2px 8px rgba(0,0,0,.08);
 
 }
 .bot-message a{
 
-    color:#ff5959;
+    color:#d10000;
 
     font-weight:600;
 
@@ -506,7 +491,7 @@ body{
 }
 .chat-footer input::placeholder{
 
-    color:#8c8c8c;
+    color:#aaaaaa;
 
 }
 
@@ -564,11 +549,11 @@ linear-gradient(
 
 90deg,
 
-#ff0000,
+#d10000,
 
-#ff6b00,
+#ff3b3b,
 
-#ff0000
+#d10000
 
 );
 
@@ -577,13 +562,10 @@ linear-gradient(
    TEXT COLORS
 =========================== */
 
-.chat-body,
-.bot-message,
 .user-message,
-.chat-footer,
-.chat-footer input,
-.chat-footer input::placeholder,
-.chat-header h2{
+.chat-footer button,
+.quick-actions .option-btn,
+.ticket-btn{
     color:#fff;
 }
 

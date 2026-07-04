@@ -1,5 +1,6 @@
 const API_URL = "https://chatbot-v2-eqxa.onrender.com";
 
+
 let conversationState = "awaiting_mobile";
 let userMobile = "";
 let selectedTicketCategory = "";
@@ -592,7 +593,7 @@ data.tracking_url
 `<a href="${data.tracking_url}"
 target="_blank"
 style="
-color:#ffffff;
+color:#d10000;
 text-decoration:underline;
 word-break:break-all;
 ">
