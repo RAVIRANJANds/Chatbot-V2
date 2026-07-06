@@ -291,18 +291,22 @@ async def create_ticket(data: TicketRequest):
 
         sheet = get_sheet("Ticket")
 
-       sheet.append_row(
-    [
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        data.mobile,
-        data.category,
-        data.issue,
-        f'=HYPERLINK("{data.photo_url}", "View Photo")',
-        "Open"
-    ],
-    value_input_option="USER_ENTERED"
-)
+        sheet.append_row([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            data.mobile,
+            data.category,
+            data.issue,
+            data.photo_url,
+            "Open"
+        ])
 
+        next_row = len(sheet.get_all_values())
+
+        sheet.update(
+            f"E{next_row}",
+            [[f'=HYPERLINK("{data.photo_url}","View Photo")']],
+            value_input_option="USER_ENTERED"
+        )
         return {
             "status": "success"
         }
