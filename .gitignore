@@ -5,3 +5,4 @@ mediseller-chatbot-569329a0d9b6.json
 __pycache__/
 *.pyc
 backend/static/uploads/
+.env

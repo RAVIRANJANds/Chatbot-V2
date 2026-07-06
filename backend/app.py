@@ -9,6 +9,9 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 import google.generativeai as genai
 from fastapi import Request
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def normalize_phone(phone_str):
     s = str(phone_str).strip()
@@ -289,13 +292,13 @@ async def create_ticket(data: TicketRequest):
         sheet = get_sheet("Ticket")
 
         sheet.append_row([
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            data.mobile,
-            data.category,
-            data.issue,
-            data.photo_url,
-            "Open"
-        ])
+    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    data.mobile,
+    data.category,
+    data.issue,
+    f'=HYPERLINK("{data.photo_url}", "View Photo")',
+    "Open"
+])
 
         return {
             "status": "success"
@@ -383,12 +386,9 @@ async def get_faq():
         )
 
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-
-if not GEMINI_API_KEY:
-    raise ValueError("GEMINI_API_KEY environment variable is not set.")
-
-genai.configure(api_key=GEMINI_API_KEY)
+genai.configure(
+    api_key=os.getenv("GEMINI_API_KEY")
+)
 @app.post("/chat-ai")
 async def chat_ai(data: ChatRequest):
 
