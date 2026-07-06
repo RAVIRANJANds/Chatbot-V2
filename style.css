@@ -10,21 +10,13 @@
 }
 
 body{
-
-    background:#f4f6f8;
-
-    min-height:100vh;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    padding:25px;
-
-    overflow:auto;
-
+    background: radial-gradient(120% 120% at 50% 10%, #ffffff 40%, #ffebeb 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow: auto;
 }
 
 /* ===========================================
@@ -32,33 +24,18 @@ body{
 =========================================== */
 
 .chat-container{
-
-    width:430px;
-
-    max-width:95vw;
-
-    height:760px;
-
-    max-height:95vh;
-
-    background:#ffffff;
-
-    border-radius:28px;
-
-    overflow:hidden;
-
-    display:flex;
-
-    flex-direction:column;
-
-    border:1px solid rgba(255,0,0,.15);
-
-    box-shadow:
-
-    0 10px 45px rgba(0,0,0,.08);
-
-    backdrop-filter:none;
-
+    width: 440px;
+    max-width: 95vw;
+    height: 780px;
+    max-height: 90vh;
+    background: #ffffff;
+    border-radius: 24px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(209, 0, 0, 0.1);
+    box-shadow: 0 20px 65px rgba(209, 0, 0, 0.08), 0 5px 25px rgba(0, 0, 0, 0.04);
+    backdrop-filter: none;
 }
 
 /* ===========================================
@@ -66,16 +43,17 @@ body{
 =========================================== */
 
 .chat-header{
-
-    height:95px;
+    height:80px;
 
     display:flex;
 
     align-items:center;
 
-    justify-content:center;
+    justify-content:flex-start;
 
-    gap:15px;
+    padding:0 24px;
+
+    gap:16px;
 
     background:#ffffff;
 
@@ -89,41 +67,10 @@ body{
 
 }
 
-.chat-icon{
-
-    width:56px;
-
-    height:56px;
-
-    border-radius:18px;
-
-    background:
-    linear-gradient(
-    180deg,
-    #ff3d3d,
-    #b50000
-    );
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    color:white;
-
-    font-size:28px;
-
-    box-shadow:
-
-    0 0 18px rgba(255,0,0,.45);
-
-}
-
 .company-logo{
 
-    width:140px;
-    height:50px;
+    width:90px;
+    height:36px;
 
     display:flex;
     justify-content:center;
@@ -139,16 +86,60 @@ body{
     object-fit:contain;
 
 }
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
 .chat-header h2{
 
     color:#111111;
 
-    font-size:22px;
+    font-size:17px;
 
     font-weight:700;
 
-    letter-spacing:.5px;
+    letter-spacing:.3px;
+    margin:0;
+    line-height:1.2;
 
+}
+
+.status {
+    font-size: 12px;
+    color: #2ecc71;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 3px;
+    font-weight: 600;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    background-color: #2ecc71;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 8px #2ecc71;
+    animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(46, 204, 113, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+    }
 }
 /* ===========================================
    CHAT BODY
@@ -212,9 +203,9 @@ body{
 
     align-items:center;
 
-    padding:18px;
+    padding:12px 16px;
 
-    gap:12px;
+    gap:10px;
 
     background:#fafafa;
 
@@ -226,11 +217,11 @@ body{
 
     flex:1;
 
-    height:52px;
+    height:44px;
 
-    padding:0 18px;
+    padding:0 16px;
 
-    border-radius:14px;
+    border-radius:12px;
 
     background:#ffffff;
 
@@ -240,7 +231,7 @@ body{
 
     outline:none;
 
-    font-size:15px;
+    font-size:14px;
 
     transition:.3s;
 
@@ -258,43 +249,47 @@ body{
 
 .chat-footer button{
 
-    width:58px;
+    width:50px;
 
-    height:52px;
+    height:44px;
 
     border:none;
 
-    border-radius:14px;
+    border-radius:12px;
 
     cursor:pointer;
 
     color:white;
 
-    font-size:20px;
+    font-size:16px;
 
     background:
 
     linear-gradient(
+
     180deg,
-    #ff3232,
-    #a60000
+
+    #ff3d3d,
+
+    #b50000
+
     );
 
     transition:.3s;
 
     box-shadow:
 
-    0 0 15px rgba(255,0,0,.35);
+    0 3px 8px rgba(209,0,0,.15);
 
 }
 
 .chat-footer button:hover{
 
-    transform:translateY(-2px);
+    transform:translateY(-1px);
 
     box-shadow:
 
-    0 0 25px rgba(255,0,0,.55);
+    0 5px 12px rgba(209,0,0,.25);
 
 }
 
@@ -309,12 +304,11 @@ body{
 .quick-actions{
 
     display:grid;
+    grid-template-columns: repeat(2, 1fr);
 
-    grid-template-columns:repeat(2,1fr);
+    gap:10px;
 
-    gap:12px;
-
-    padding:16px;
+    padding:12px 16px;
 
     background:#fafafa;
 
@@ -322,45 +316,58 @@ body{
 
 }
 
+.quick-actions button:nth-child(5) {
+    grid-column: span 2;
+}
+
 .quick-actions .option-btn{
 
     background:
 
     linear-gradient(
+
     180deg,
-    #ff2e2e,
-    #980000
+
+    #ff3b3b,
+
+    #d10000
+
     );
 
     color:white;
 
     border:none;
 
-    border-radius:14px;
+    border-radius:12px;
 
-    padding:15px;
+    padding:12px 14px;
 
-    font-size:15px;
+    font-size:13px;
 
     font-weight:600;
 
     cursor:pointer;
 
-    transition:.3s;
+    transition: all 0.25s ease;
 
     box-shadow:
 
-    0 5px 18px rgba(255,0,0,.25);
+    0 3px 8px rgba(209,0,0,.12);
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 
 }
 
 .quick-actions .option-btn:hover{
 
-    transform:translateY(-2px);
+    transform:translateY(-1px);
 
     box-shadow:
 
-    0 10px 22px rgba(255,0,0,.40);
+    0 6px 16px rgba(209,0,0,.22);
 
 }
 
@@ -575,24 +582,67 @@ linear-gradient(
 
 @media (max-width:480px){
 
+    body {
+        padding: 0;
+        background: #ffffff;
+    }
+
     .chat-container{
         width:100%;
-        height:100vh;
+        height:100dvh;
+        max-height:100dvh;
         position:relative;
         border-radius:0;
+        border: none;
+        box-shadow: none;
     }
 
     .quick-actions{
         gap:8px;
+        padding: 10px 12px;
     }
 
     .quick-actions .option-btn{
-        min-width:48%;
-        font-size:13px;
+        padding:10px;
+        font-size:12px;
+    }
+
+    .chat-footer {
+        padding: 10px 12px;
     }
 
     .chat-footer input{
+        height: 40px;
         font-size:14px;
+        border-radius: 10px;
+        padding: 0 12px;
+    }
+
+    .chat-footer button{
+        height: 40px;
+        width: 46px;
+        font-size: 15px;
+        border-radius: 10px;
+    }
+
+    .chat-header {
+        height: 70px;
+        padding: 0 16px;
+    }
+
+    .company-logo {
+        width: 80px;
+        height: 30px;
+    }
+
+    .chat-header h2 {
+        font-size: 15px;
+    }
+
+    .bot-message, .user-message {
+        padding: 12px 14px;
+        font-size: 14px;
+        margin-bottom: 12px;
     }
 }
 /* ===========================================
@@ -645,4 +695,58 @@ linear-gradient(
 
 .ticket-btn:active{
     transform:scale(.98);
+}
+
+/* ===========================
+   UPLOAD BOX STYLING
+=========================== */
+.upload-box {
+    background: #ffffff;
+    border: 2px dashed #dddddd;
+    padding: 12px;
+    border-radius: 12px;
+    margin-top: 10px;
+    transition: border-color 0.3s;
+}
+
+.upload-box:hover {
+    border-color: #d10000;
+}
+
+.upload-label {
+    display: inline-block;
+    padding: 8px 16px;
+    background: #f0f0f0;
+    color: #333333;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid #cccccc;
+    transition: all 0.2s;
+}
+
+.upload-label:hover {
+    background: #e5e5e5;
+    border-color: #bbbbbb;
+}
+
+#photoStatus {
+    font-size: 12px;
+    color: #666666;
+    margin-left: 10px;
+}
+
+.submit-ticket-btn {
+    transition: all 0.2s;
+}
+
+.submit-ticket-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(209,0,0,.25);
+    background: linear-gradient(180deg, #ff5252, #e60000) !important;
+}
+
+.submit-ticket-btn:active {
+    transform: scale(0.98);
 }

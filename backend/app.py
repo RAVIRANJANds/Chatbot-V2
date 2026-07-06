@@ -1,13 +1,23 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import os
+import shutil
 import gspread
 from google.oauth2.service_account import Credentials
 from datetime import datetime
 import google.generativeai as genai
+from fastapi import Request
 
-from pydantic import BaseModel
+def normalize_phone(phone_str):
+    s = str(phone_str).strip()
+    if s.endswith(".0"):
+        s = s[:-2]
+    s = "".join(c for c in s if c.isdigit())
+    if len(s) >= 10:
+        return s[-10:]
+    return s
 
 # ==========================
 # REQUEST MODELS
@@ -24,7 +34,8 @@ class OrderRequest(BaseModel):
 class TicketRequest(BaseModel):
     mobile: str
     category: str
-    issue: str = " "
+    issue: str = ""
+    photo_url: str = ""
 
 class VerifyOrderRequest(BaseModel):
     order_no: str
@@ -57,6 +68,10 @@ app.add_middleware(
 # ==================================
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+UPLOAD_DIR = os.path.join(BASE_DIR, "static", "uploads")
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
 SHEET_ID = "1UyvjshQcX7GR_IWao82dGTZ0IaGfktQMoFB0XmVIPIE"
 
@@ -171,6 +186,7 @@ async def track_order(data: OrderRequest):
     try:
 
         mobile = str(data.mobile).strip().upper()
+        user_mobile_norm = normalize_phone(mobile)
 
         print("\n=================================")
         print("User Mobile :", mobile)
@@ -185,15 +201,13 @@ async def track_order(data: OrderRequest):
 
         for row in records:
 
-            current_mobile = str(
-                row.get("Mobile", "")
-            ).strip().upper()
+            current_mobile = normalize_phone(row.get("Mobile", ""))
 
             print("---------------------------------")
             print("Sheet Mobile :", current_mobile)
-            print("User Mobile  :", mobile)
+            print("User Mobile  :", user_mobile_norm)
 
-            if current_mobile == mobile:
+            if current_mobile == user_mobile_norm:
 
                 print("✅ MATCH FOUND")
 
@@ -229,6 +243,44 @@ async def track_order(data: OrderRequest):
             status_code=500,
             detail=str(e)
         )
+
+@app.post("/get-orders")
+async def get_orders(data: OrderRequest):
+    try:
+        mobile = str(data.mobile).strip().upper()
+        user_mobile_norm = normalize_phone(mobile)
+        sheet = get_sheet("Master sheet")
+        records = sheet.get_all_records()
+        user_orders = []
+        for row in records:
+            current_mobile = normalize_phone(row.get("Mobile", ""))
+            if current_mobile == user_mobile_norm:
+                user_orders.append({
+                    "order_no": str(row.get("Order No", "")),
+                    "logistic_name": str(row.get("Logistic Name", "")),
+                    "dispatch_status": str(row.get("Dispatch Status", "")).strip(),
+                    "tracking_number": str(row.get("Tracking Number", "")),
+                    "tracking_url": str(row.get("Tracking Url", "")),
+                    "delivery_type": str(row.get("Delivery Type", "")),
+                    "order_confirmation": str(row.get("Order Confirmation Status", "")),
+                    "courier_type": str(row.get("Order Type", ""))
+                })
+        if user_orders:
+            user_orders.reverse()  # Latest first
+            return {
+                "found": True,
+                "orders": user_orders
+            }
+        return {
+            "found": False
+        }
+    except Exception as e:
+        print("ERROR :", e)
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
 @app.post("/create-ticket")
 async def create_ticket(data: TicketRequest):
 
@@ -241,6 +293,7 @@ async def create_ticket(data: TicketRequest):
             data.mobile,
             data.category,
             data.issue,
+            data.photo_url,
             "Open"
         ])
 
@@ -330,9 +383,12 @@ async def get_faq():
         )
 
 
-genai.configure(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable is not set.")
+
+genai.configure(api_key=GEMINI_API_KEY)
 @app.post("/chat-ai")
 async def chat_ai(data: ChatRequest):
 
@@ -371,6 +427,26 @@ async def chat_ai(data: ChatRequest):
             status_code=500,
             detail=str(e)
         )
+@app.post("/upload-photo")
+async def upload_photo(
+    request: Request,
+    file: UploadFile = File(...)
+):
+    try:
+        filename = f"{datetime.now().strftime('%Y%m%d%H%M%S')}_{file.filename}"
+        file_location = os.path.join(UPLOAD_DIR, filename)
+        with open(file_location, "wb+") as file_object:
+            shutil.copyfileobj(file.file, file_object)
+        return {
+    "status": "success",
+    "url": str(request.base_url) + f"static/uploads/{filename}"
+}
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
 @app.get("/")
 async def home():
 
