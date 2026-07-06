@@ -1,6 +1,4 @@
-const API_URL = window.location.origin.includes("localhost") || window.location.origin.includes("127.0.0.1") 
-    ? "https://chatbot-v2-eqxa.onrender.com"
-    : window.location.origin;
+const API_URL = "https://chatbot-v2-eqxa.onrender.com";
 
 let sessionId = localStorage.getItem("chat_session_id");
 if (!sessionId) {
