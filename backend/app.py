@@ -101,7 +101,7 @@ try:
 
     client = gspread.authorize(creds)
 
-    spreadsheet = client.open("Testing dom data")
+    spreadsheet = client.open_by_key(SHEET_ID)
 
     print("\n========== CONNECTED ==========")
     print("Spreadsheet:", spreadsheet.title)
@@ -283,6 +283,87 @@ async def get_orders(data: OrderRequest):
             status_code=500,
             detail=str(e)
         )
+@app.post("/create-ticket")
+async def create_ticket(data: TicketRequest):
+
+    try:
+
+        print("========== CREATE TICKET ==========")
+        print("Mobile :", data.mobile)
+
+        sheet = get_sheet("Ticket")
+        master_sheet = get_sheet("Master sheet")
+
+        records = master_sheet.get_all_records()
+
+        customer = None
+
+        # Find customer by Mobile Number
+        for row in records:
+            if normalize_phone(row.get("Mobile", "")) == normalize_phone(data.mobile):
+                customer = row
+                break
+
+        print("Customer :", customer)
+
+        if customer is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Customer not found in Master Sheet"
+            )
+
+        ticket_id = "TKT" + datetime.now().strftime("%Y%m%d%H%M%S")
+        created_on = datetime.now().strftime("%d %b %Y, %I:%M %p")
+
+        row_data = [
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # Timestamp
+            customer.get("Mobile", ""),                     # Mobile
+            ticket_id,                                      # Ticket ID
+            data.category,                                  # Category
+            data.issue,                                     # Issue
+            data.photo_url,                                 # Photo URL
+            "Open",                                         # Status
+            data.issue,                                     # Description
+            "Website",                                      # Source
+            customer.get("Order No", ""),                   # Remark
+            "Pending",                                      # Ticket Status
+            "",                                             # Next Followup
+            customer.get("Dispatch Status", "")             # Final Remark
+        ]
+
+        print("ROW DATA :", row_data)
+
+        sheet.append_row(
+            row_data,
+            value_input_option="USER_ENTERED"
+        )
+
+        next_row = len(sheet.get_all_values())
+
+        # Convert Photo URL into clickable hyperlink
+        sheet.update(
+            f"F{next_row}",
+            [[f'=HYPERLINK("{data.photo_url}","View Photo")']],
+            value_input_option="USER_ENTERED"
+        )
+
+        print("Ticket Saved Successfully")
+
+        return {
+            "status": "success",
+            "ticket_id": ticket_id,
+            "created_on": created_on,
+            "photo_url": data.photo_url
+        }
+
+    except Exception as e:
+
+        print("CREATE TICKET ERROR :", repr(e))
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 @app.post("/create-reorder")
 async def create_reorder(data: ReorderRequest):
 
@@ -298,7 +379,6 @@ async def create_reorder(data: ReorderRequest):
 
         customer = None
 
-        # Find customer by Order No
         for row in records:
             if str(row.get("Order No", "")).strip().upper() == str(data.order_no).strip().upper():
                 customer = row
@@ -315,30 +395,24 @@ async def create_reorder(data: ReorderRequest):
         reorder_id = "REO" + datetime.now().strftime("%Y%m%d%H%M%S")
 
         row_data = [
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # Timestamp
-            "",                                             # Ticket ID
-            reorder_id,                                     # Reorder ID
-            customer.get("Mobile", ""),                     # Phone
-            customer.get("Client Name", ""),                # Name
-            customer.get("Order No", ""),                   # Last Order ID
-            customer.get("DATE", ""),                       # Last Order Date
-            "Website"                                       # Source
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "",
+            reorder_id,
+            customer.get("Mobile", ""),
+            customer.get("Client Name", ""),
+            customer.get("Order No", ""),
+            customer.get("DATE", ""),
+            "Website"
         ]
 
         print("ROW DATA :", row_data)
-
-        rows_before = len(sheet.get_all_values())
 
         sheet.append_row(
             row_data,
             value_input_option="USER_ENTERED"
         )
 
-        rows_after = len(sheet.get_all_values())
-
-        print("Rows Before :", rows_before)
-        print("Rows After  :", rows_after)
-        print("Last Row :", sheet.get_all_values()[-1])
+        print("Reorder Saved Successfully")
 
         return {
             "status": "success",
