@@ -401,10 +401,55 @@ case "Track My Order":
 
             case "FAQs":
 
-                updateChatUI(
-                    "Please click FAQ section. Dynamic FAQ API can be connected later.",
-                    "bot"
-                );
+    try {
+
+        updateChatUI("🔍 Loading FAQs...", "bot");
+
+        const response = await fetch(`${API_URL}/faq`);
+
+        const faqs = await response.json();
+
+        // Loading message remove
+        const messages = document.querySelectorAll(".bot-message");
+        const lastMessage = messages[messages.length - 1];
+
+        if (
+            lastMessage &&
+            lastMessage.innerText === "🔍 Loading FAQs..."
+        ) {
+            lastMessage.remove();
+        }
+
+        if (!faqs.length) {
+            updateChatUI("No FAQs available.", "bot");
+            break;
+        }
+
+        let html = "<b>Frequently Asked Questions</b><br><br>";
+
+        faqs.forEach((item, index) => {
+
+            html += `
+            <b>${index + 1}. ${item.Question}</b><br>
+            ${item.Answer}<br><br>
+            `;
+
+        });
+
+        updateChatUI(html, "bot");
+
+    } catch (err) {
+
+        updateChatUI(
+            "❌ Unable to load FAQs.",
+            "bot"
+        );
+
+        console.error(err);
+
+    }
+
+    
 
                 break;
 
