@@ -294,15 +294,12 @@ async def create_reorder(data: ReorderRequest):
         sheet = get_sheet("Re-orders")
         master_sheet = get_sheet("Master sheet")
 
-        print("Worksheet :", sheet.title)
-
         records = master_sheet.get_all_records()
 
         customer = None
 
         # Find customer by Order No
         for row in records:
-
             if str(row.get("Order No", "")).strip().upper() == str(data.order_no).strip().upper():
                 customer = row
                 break
@@ -318,14 +315,14 @@ async def create_reorder(data: ReorderRequest):
         reorder_id = "REO" + datetime.now().strftime("%Y%m%d%H%M%S")
 
         row_data = [
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Timestamp
-            "",                                            # Ticket ID
-            reorder_id,                                    # Reorder ID
-            customer.get("Mobile", ""),                    # Phone
-            customer.get("Client Name", ""),               # Name
-            customer.get("Order No", ""),                  # Last Order ID
-            customer.get("DATE", ""),                      # Last Order Date
-            "Website"                                      # Source
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # Timestamp
+            "",                                             # Ticket ID
+            reorder_id,                                     # Reorder ID
+            customer.get("Mobile", ""),                     # Phone
+            customer.get("Client Name", ""),                # Name
+            customer.get("Order No", ""),                   # Last Order ID
+            customer.get("DATE", ""),                       # Last Order Date
+            "Website"                                       # Source
         ]
 
         print("ROW DATA :", row_data)
@@ -351,55 +348,6 @@ async def create_reorder(data: ReorderRequest):
     except Exception as e:
 
         print("CREATE REORDER ERROR :", repr(e))
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-@app.post("/create-reorder")
-async def create_reorder(data: ReorderRequest):
-
-    try:
-
-        sheet = get_sheet("Re-orders")
-        master_sheet = get_sheet("Master sheet")
-        records = master_sheet.get_all_records()
-
-        customer = None
-
-        # Order No se customer search
-        for row in records:
-            if str(row.get("Order No", "")).strip() == str(data.order_no).strip():
-                customer = row
-                break
-
-        if not customer:
-            raise HTTPException(
-                status_code=404,
-                detail="Order not found in Master Sheet"
-            )
-
-        reorder_id = "REO" + datetime.now().strftime("%Y%m%d%H%M%S")
-        print("Writing to Ticket Sheet...")
-
-
-        sheet.append_row([
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # Timestamp
-            "",                                             # Ticket ID (Blank)
-            reorder_id,                                     # Reorder ID
-            customer["Mobile"],                             # Phone
-            customer["Client Name"],                        # Name
-            customer["Order No"],                           # Last Order ID
-            customer["DATE"],                               # Last Order Date
-            customer.get("POC", "Web")                         # Source
-        ])
-
-        return {
-            "status": "success",
-            "reorder_id": reorder_id
-        }
-
-    except Exception as e:
 
         raise HTTPException(
             status_code=500,
