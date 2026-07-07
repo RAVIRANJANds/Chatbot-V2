@@ -291,8 +291,12 @@ async def create_ticket(data: TicketRequest):
 
         sheet = get_sheet("Ticket")
 
+        ticket_id = "TKT" + datetime.now().strftime("%Y%m%d%H%M%S")
+        created_on = datetime.now().strftime("%d %b %Y, %I:%M %p")
+
         sheet.append_row([
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            ticket_id,
             data.mobile,
             data.category,
             data.issue,
@@ -302,13 +306,24 @@ async def create_ticket(data: TicketRequest):
 
         next_row = len(sheet.get_all_values())
 
+        # Photo URL column update (column letter sheet ke hisaab se badal sakta hai)
         sheet.update(
-            f"E{next_row}",
+            f"F{next_row}",
             [[f'=HYPERLINK("{data.photo_url}","View Photo")']],
             value_input_option="USER_ENTERED"
         )
+        print({
+    "status": "success",
+    "ticket_id": ticket_id,
+    "created_on": created_on,
+    "photo_url": data.photo_url
+})
+
         return {
-            "status": "success"
+            "status": "success",
+            "ticket_id": ticket_id,
+            "created_on": created_on,
+            "photo_url": data.photo_url
         }
 
     except Exception as e:
@@ -317,7 +332,6 @@ async def create_ticket(data: TicketRequest):
             status_code=500,
             detail=str(e)
         )
-    
 @app.post("/verify-order")
 async def verify_order(data: VerifyOrderRequest):
 
