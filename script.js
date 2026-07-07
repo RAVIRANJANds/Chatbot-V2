@@ -473,7 +473,7 @@ case "Track My Order":
                       <p style="margin-bottom: 12px;">13. <b>Fake Complaint & Fraud Protection:</b> False, fabricated, or unsubstantiated complaints will be rejected and may result in permanent blacklisting and legal action under IPC Sections 415, 417, 420 and the IT Act, 2000. Mediseller maintains full dispatch records, packing photos, and courier proofs.</p>
                       <p style="margin-bottom: 12px;">14. <b>Third-Party Platform Complaints:</b> Complaints raised on IndiaMart, TradeIndia, or any third-party platform without first contacting Mediseller support are invalid. Allow 48 working hours for resolution before any escalation.</p>
                       <p style="margin-bottom: 12px;">15. <b>Limitation of Liability:</b> Mediseller's liability is strictly limited to the order value. Mediseller is not liable for indirect losses, health consequences from product use, courier failures, or customs issues. Mediseller is not a medical advisor.</p>
-                      <p style="margin-bottom: 12px;">16. <b>Governing Law & Contact:</b> These Terms are governed by Indian law. Disputes subject to exclusive jurisdiction of courts in New Delhi, India. For support: support@mediseller.com | WhatsApp: +91-9667733026 | Mon–Sat, 10 AM – 6:30 PM IST.</p>
+                      <p style="margin-bottom: 12px;">16. <b>Governing Law & Contact:</b> These Terms are governed by Indian law. Disputes subject to exclusive jurisdiction of courts in New Delhi, India. For support: support@mediseller.com | WhatsApp: +91-7065016950| Mon–Sat, 10 AM – 6:30 PM IST.</p>
                     </div>
                 `, "bot");
                 break;
