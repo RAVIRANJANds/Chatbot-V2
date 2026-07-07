@@ -247,6 +247,42 @@ async def track_order(data: OrderRequest):
             detail=str(e)
         )
 
+@app.post("/get-orders")
+async def get_orders(data: OrderRequest):
+    try:
+        mobile = str(data.mobile).strip().upper()
+        user_mobile_norm = normalize_phone(mobile)
+        sheet = get_sheet("Master sheet")
+        records = sheet.get_all_records()
+        user_orders = []
+        for row in records:
+            current_mobile = normalize_phone(row.get("Mobile", ""))
+            if current_mobile == user_mobile_norm:
+                user_orders.append({
+                    "order_no": str(row.get("Order No", "")),
+                    "logistic_name": str(row.get("Logistic Name", "")),
+                    "dispatch_status": str(row.get("Dispatch Status", "")).strip(),
+                    "tracking_number": str(row.get("Tracking Number", "")),
+                    "tracking_url": str(row.get("Tracking Url", "")),
+                    "delivery_type": str(row.get("Delivery Type", "")),
+                    "order_confirmation": str(row.get("Order Confirmation Status", "")),
+                    "courier_type": str(row.get("Order Type", ""))
+                })
+        if user_orders:
+            user_orders.reverse()  # Latest first
+            return {
+                "found": True,
+                "orders": user_orders
+            }
+        return {
+            "found": False
+        }
+    except Exception as e:
+        print("ERROR :", e)
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 @app.post("/create-reorder")
 async def create_reorder(data: ReorderRequest):
 
@@ -256,15 +292,18 @@ async def create_reorder(data: ReorderRequest):
         print("Order No :", data.order_no)
 
         sheet = get_sheet("Re-orders")
+        master_sheet = get_sheet("Master sheet")
+
         print("Worksheet :", sheet.title)
 
-        master_sheet = get_sheet("Master sheet")
         records = master_sheet.get_all_records()
 
         customer = None
 
+        # Find customer by Order No
         for row in records:
-            if str(row.get("Order No", "")).strip() == str(data.order_no).strip():
+
+            if str(row.get("Order No", "")).strip().upper() == str(data.order_no).strip().upper():
                 customer = row
                 break
 
@@ -279,83 +318,14 @@ async def create_reorder(data: ReorderRequest):
         reorder_id = "REO" + datetime.now().strftime("%Y%m%d%H%M%S")
 
         row_data = [
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "",
-            reorder_id,
-            customer.get("Mobile", ""),
-            customer.get("Client Name", ""),
-            customer.get("Order No", ""),
-            customer.get("DATE", ""),
-            "Website"
-        ]
-
-        print("ROW DATA :", row_data)
-
-        sheet.append_row(
-            row_data,
-            value_input_option="USER_ENTERED"
-        )
-
-        print("Reorder Saved Successfully")
-
-        return {
-            "status": "success",
-            "reorder_id": reorder_id
-        }
-
-    except Exception as e:
-
-        print("CREATE REORDER ERROR :", repr(e))
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-@app.post("/create-ticket")
-async def create_ticket(data: TicketRequest):
-
-    try:
-
-        sheet = get_sheet("Ticket")
-        master_sheet = get_sheet("Master sheet")
-
-        records = master_sheet.get_all_records()
-
-        customer = None
-
-        # Find customer by mobile number
-        for row in records:
-            if normalize_phone(row.get("Mobile", "")) == normalize_phone(data.mobile):
-                customer = row
-                break
-
-        if customer is None:
-            raise HTTPException(
-                status_code=404,
-                detail="Customer not found in Master Sheet"
-            )
-
-        ticket_id = "TKT" + datetime.now().strftime("%Y%m%d%H%M%S")
-        created_on = datetime.now().strftime("%d %b %Y, %I:%M %p")
-
-        print("========== CREATE TICKET ==========")
-        print("Worksheet :", sheet.title)
-        print("Customer :", customer)
-
-        row_data = [
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # Timestamp
-            customer.get("Mobile", ""),                     # Mobile
-            ticket_id,                                      # Ticket ID
-            data.category,                                  # Category
-            data.issue,                                     # Issue
-            data.photo_url,                                 # Photo URL
-            "Open",                                         # Status
-            data.issue,                                     # Description
-            "Website",                                      # Source
-            customer.get("Order No", ""),                   # Remark
-            "Pending",                                      # Ticket Status
-            "",                                             # Next Followup
-            customer.get("Dispatch Status", "")             # Final Remark
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),  # Timestamp
+            "",                                            # Ticket ID
+            reorder_id,                                    # Reorder ID
+            customer.get("Mobile", ""),                    # Phone
+            customer.get("Client Name", ""),               # Name
+            customer.get("Order No", ""),                  # Last Order ID
+            customer.get("DATE", ""),                      # Last Order Date
+            "Website"                                      # Source
         ]
 
         print("ROW DATA :", row_data)
@@ -371,33 +341,16 @@ async def create_ticket(data: TicketRequest):
 
         print("Rows Before :", rows_before)
         print("Rows After  :", rows_after)
-
-        next_row = rows_after
-
-        # Update Photo URL as hyperlink
-        sheet.update(
-            f"F{next_row}",
-            [[f'=HYPERLINK("{data.photo_url}","View Photo")']],
-            value_input_option="USER_ENTERED"
-        )
-
-        print("Photo Link Updated")
-
-        all_rows = sheet.get_all_values()
-
-        print("Total Rows :", len(all_rows))
-        print("Last Row :", all_rows[-1])
+        print("Last Row :", sheet.get_all_values()[-1])
 
         return {
             "status": "success",
-            "ticket_id": ticket_id,
-            "created_on": created_on,
-            "photo_url": data.photo_url
+            "reorder_id": reorder_id
         }
 
     except Exception as e:
 
-        print("CREATE TICKET ERROR :", repr(e))
+        print("CREATE REORDER ERROR :", repr(e))
 
         raise HTTPException(
             status_code=500,
