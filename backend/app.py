@@ -290,19 +290,40 @@ async def create_ticket(data: TicketRequest):
     try:
 
         sheet = get_sheet("Ticket")
+        master_sheet = get_sheet("Master sheet")
+        records = master_sheet.get_all_records()
+
+        customer = None
+
+        for row in records:
+            if normalize_phone(row.get("Mobile", "")) == normalize_phone(data.mobile):
+                customer = row
+                break
+
+        if not customer:
+            raise HTTPException(
+                status_code=404,
+                detail="Customer not found in Master Sheet"
+    )
 
         ticket_id = "TKT" + datetime.now().strftime("%Y%m%d%H%M%S")
         created_on = datetime.now().strftime("%d %b %Y, %I:%M %p")
 
         sheet.append_row([
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            ticket_id,
-            data.mobile,
-            data.category,
-            data.issue,
-            data.photo_url,
-            "Open"
-        ])
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # A Timestamp
+        customer["Mobile"],                            # B Mobile
+        ticket_id,                                     # C Ticket ID
+        data.category,                                 # D Category
+        data.issue,                                    # E Issue
+        data.photo_url,                                # F Photo URL
+        "Open",                                        # G Status
+        customer["Client Name"],                       # H Description
+        "Web",                                         # I Source
+        customer["Order No"],                          # J Remark
+        "Pending",                                     # K Ticket Status
+        "",                                            # L Next Followup
+        customer["Dispatch Status"]                    # M Final Remark
+])
 
         next_row = len(sheet.get_all_values())
 
@@ -372,14 +393,39 @@ async def create_reorder(data: ReorderRequest):
     try:
 
         sheet = get_sheet("Re-orders")
+        master_sheet = get_sheet("Master sheet")
+        records = master_sheet.get_all_records()
+
+        customer = None
+
+        # Order No se customer search
+        for row in records:
+            if str(row.get("Order No", "")).strip() == str(data.order_no).strip():
+                customer = row
+                break
+
+        if not customer:
+            raise HTTPException(
+                status_code=404,
+                detail="Order not found in Master Sheet"
+            )
+
+        reorder_id = "REO" + datetime.now().strftime("%Y%m%d%H%M%S")
 
         sheet.append_row([
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            data.order_no
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # Timestamp
+            "",                                             # Ticket ID (Blank)
+            reorder_id,                                     # Reorder ID
+            customer["Mobile"],                             # Phone
+            customer["Client Name"],                        # Name
+            customer["Order No"],                           # Last Order ID
+            customer["DATE"],                               # Last Order Date
+            customer.get("POC", "Web")                         # Source
         ])
 
         return {
-            "status": "success"
+            "status": "success",
+            "reorder_id": reorder_id
         }
 
     except Exception as e:
