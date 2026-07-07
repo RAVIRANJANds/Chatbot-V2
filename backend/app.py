@@ -247,38 +247,66 @@ async def track_order(data: OrderRequest):
             detail=str(e)
         )
 
-@app.post("/get-orders")
-async def get_orders(data: OrderRequest):
+@app.post("/create-reorder")
+async def create_reorder(data: ReorderRequest):
+
     try:
-        mobile = str(data.mobile).strip().upper()
-        user_mobile_norm = normalize_phone(mobile)
-        sheet = get_sheet("Master sheet")
-        records = sheet.get_all_records()
-        user_orders = []
+
+        print("========== CREATE REORDER ==========")
+        print("Order No :", data.order_no)
+
+        sheet = get_sheet("Re-orders")
+        print("Worksheet :", sheet.title)
+
+        master_sheet = get_sheet("Master sheet")
+        records = master_sheet.get_all_records()
+
+        customer = None
+
         for row in records:
-            current_mobile = normalize_phone(row.get("Mobile", ""))
-            if current_mobile == user_mobile_norm:
-                user_orders.append({
-                    "order_no": str(row.get("Order No", "")),
-                    "logistic_name": str(row.get("Logistic Name", "")),
-                    "dispatch_status": str(row.get("Dispatch Status", "")).strip(),
-                    "tracking_number": str(row.get("Tracking Number", "")),
-                    "tracking_url": str(row.get("Tracking Url", "")),
-                    "delivery_type": str(row.get("Delivery Type", "")),
-                    "order_confirmation": str(row.get("Order Confirmation Status", "")),
-                    "courier_type": str(row.get("Order Type", ""))
-                })
-        if user_orders:
-            user_orders.reverse()  # Latest first
-            return {
-                "found": True,
-                "orders": user_orders
-            }
+            if str(row.get("Order No", "")).strip() == str(data.order_no).strip():
+                customer = row
+                break
+
+        print("Customer :", customer)
+
+        if customer is None:
+            raise HTTPException(
+                status_code=404,
+                detail="Order not found in Master Sheet"
+            )
+
+        reorder_id = "REO" + datetime.now().strftime("%Y%m%d%H%M%S")
+
+        row_data = [
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "",
+            reorder_id,
+            customer.get("Mobile", ""),
+            customer.get("Client Name", ""),
+            customer.get("Order No", ""),
+            customer.get("DATE", ""),
+            "Website"
+        ]
+
+        print("ROW DATA :", row_data)
+
+        sheet.append_row(
+            row_data,
+            value_input_option="USER_ENTERED"
+        )
+
+        print("Reorder Saved Successfully")
+
         return {
-            "found": False
+            "status": "success",
+            "reorder_id": reorder_id
         }
+
     except Exception as e:
-        print("ERROR :", e)
+
+        print("CREATE REORDER ERROR :", repr(e))
+
         raise HTTPException(
             status_code=500,
             detail=str(e)
