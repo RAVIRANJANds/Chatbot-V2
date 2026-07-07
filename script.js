@@ -232,6 +232,8 @@ switch(conversationState){
             break;
 
 default:
+    
+
 
     // Loading Message
     updateChatUI(
