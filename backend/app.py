@@ -295,6 +295,7 @@ async def create_ticket(data: TicketRequest):
 
         customer = None
 
+        # Find customer by mobile
         for row in records:
             if normalize_phone(row.get("Mobile", "")) == normalize_phone(data.mobile):
                 customer = row
@@ -304,41 +305,49 @@ async def create_ticket(data: TicketRequest):
             raise HTTPException(
                 status_code=404,
                 detail="Customer not found in Master Sheet"
-    )
+            )
 
         ticket_id = "TKT" + datetime.now().strftime("%Y%m%d%H%M%S")
         created_on = datetime.now().strftime("%d %b %Y, %I:%M %p")
 
-        sheet.append_row([
-        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # A Timestamp
-        customer["Mobile"],                            # B Mobile
-        ticket_id,                                     # C Ticket ID
-        data.category,                                 # D Category
-        data.issue,                                    # E Issue
-        data.photo_url,                                # F Photo URL
-        "Open",                                        # G Status
-        customer["Client Name"],                       # H Description
-        "Web",                                         # I Source
-        customer["Order No"],                          # J Remark
-        "Pending",                                     # K Ticket Status
-        "",                                            # L Next Followup
-        customer["Dispatch Status"]                    # M Final Remark
-])
+        print("========== CREATE TICKET ==========")
+        print("Worksheet :", sheet.title)
+        print("Customer :", customer)
+
+        row_data = [
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # Timestamp
+            customer.get("Mobile", ""),                     # Mobile
+            ticket_id,                                      # Ticket ID
+            data.category,                                  # Category
+            data.issue,                                     # Issue
+            data.photo_url,                                 # Photo URL
+            "Open",                                         # Status
+            data.issue,                                     # Description
+            "Website",                                      # Source
+            customer.get("Order No", ""),                   # Remark
+            "Pending",                                      # Ticket Status
+            "",                                             # Next Followup
+            customer.get("Dispatch Status", "")             # Final Remark
+        ]
+
+        print("ROW DATA :", row_data)
+
+        sheet.append_row(
+            row_data,
+            value_input_option="USER_ENTERED"
+        )
+
+        print("Row Saved Successfully")
 
         next_row = len(sheet.get_all_values())
 
-        # Photo URL column update (column letter sheet ke hisaab se badal sakta hai)
         sheet.update(
             f"F{next_row}",
             [[f'=HYPERLINK("{data.photo_url}","View Photo")']],
             value_input_option="USER_ENTERED"
         )
-        print({
-    "status": "success",
-    "ticket_id": ticket_id,
-    "created_on": created_on,
-    "photo_url": data.photo_url
-})
+
+        print("Photo Link Updated")
 
         return {
             "status": "success",
@@ -348,6 +357,8 @@ async def create_ticket(data: TicketRequest):
         }
 
     except Exception as e:
+
+        print("CREATE TICKET ERROR :", repr(e))
 
         raise HTTPException(
             status_code=500,
