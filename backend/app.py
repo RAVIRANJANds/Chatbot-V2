@@ -393,36 +393,26 @@ async def get_faq():
         )
 
 
-genai.configure(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+api_key = os.getenv("GEMINI_API_KEY")
+
+print("=" * 50)
+print("API KEY FOUND:", bool(api_key))
+print("API KEY PREFIX:", api_key[:10] if api_key else "None")
+print("=" * 50)
+
+genai.configure(api_key=api_key)
 @app.post("/chat-ai")
 async def chat_ai(data: ChatRequest):
 
     try:
 
-        model = genai.GenerativeModel(
-            "gemini-2.0-flash"
-        )
+        print("User Message:", data.message)
 
-        prompt = f"""
-        You are Mediseller Support Assistant.
+        model = genai.GenerativeModel("gemini-2.0-flash")
 
-        Company: Mediseller Pharma
+        response = model.generate_content(data.message)
 
-        Rules:
-        - Reply professionally.
-        - Keep answers short.
-        - If user wants order status, ask them to use Track My Order.
-        - If user wants ticket support, ask them to use Raise a Ticket.
-        - If user wants reorder, ask them to use Product Reorder.
-        - Reply in the same language as the user.
-
-        User:
-        {data.message}
-        """
-
-        response = model.generate_content(prompt)
+        print("Gemini Reply:", response.text)
 
         return {
             "reply": response.text
@@ -430,10 +420,11 @@ async def chat_ai(data: ChatRequest):
 
     except Exception as e:
 
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
+        print("Gemini ERROR:", repr(e))
+
+        return {
+            "reply": f"ERROR : {str(e)}"
+        }
 @app.post("/upload-photo")
 async def upload_photo(
     request: Request,
