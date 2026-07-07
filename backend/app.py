@@ -397,7 +397,6 @@ async def create_reorder(data: ReorderRequest):
 
         row_data = [
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "",
             reorder_id,
             customer.get("Mobile", ""),
             customer.get("Client Name", ""),
