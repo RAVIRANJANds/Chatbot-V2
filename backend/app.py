@@ -339,6 +339,7 @@ async def create_ticket(data: TicketRequest):
         )
 
         next_row = len(sheet.get_all_values())
+        
 
         # Convert Photo URL into clickable hyperlink
         sheet.update(
