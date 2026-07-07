@@ -162,7 +162,7 @@ switch(conversationState){
 
             try {
 
-            await fetch(
+                const response = await fetch(
                 `${API_URL}/create-ticket`,
             {
                 method: "POST",
@@ -170,25 +170,37 @@ switch(conversationState){
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    mobile: userMobile,
-                    category: selectedTicketCategory,
-                    issue: text
-                    })
-                }
-            );
-
-            updateChatUI(
-                "✅ Ticket created successfully.",
-                "bot"
-            );
-
-        } catch (e) {
-
-            updateChatUI(
-                "❌ Unable to create ticket.",
-                "bot"
-            );
+                mobile: userMobile,
+                category: selectedTicketCategory,
+                issue: text
+            })
         }
+    );
+
+    const data = await response.json();
+
+    updateChatUI(`
+        ✅ <b>Ticket created successfully!</b><br><br>
+
+        🎫 <b>Ticket ID:</b> ${data.ticket_id}<br><br>
+
+        📂 <b>Category:</b> ${selectedTicketCategory}<br><br>
+
+        📅 <b>Created On:</b> ${data.created_on}<br><br>
+
+        📞 Our support team will contact you shortly.<br><br>
+
+        <b>Please save your Ticket ID for future reference.</b>
+    `, "bot");
+
+} catch (e) {
+
+    updateChatUI(
+        "❌ Unable to create ticket.",
+        "bot"
+    );
+
+}
     selectedTicketCategory = "";
     isAnyOtherTicket = false;
     conversationState = "idle";  
@@ -681,8 +693,16 @@ Submit Ticket
         const data = await response.json();
 
         if (data.status === "success") {
-            let successMsg = `✅ Ticket created successfully.<br><br>
-                <b>Category:</b> ${category}<br><br>`;
+
+    let successMsg = `
+    ✅ <b>Ticket created successfully!</b><br><br>
+
+    🎫 <b>Ticket ID:</b> ${data.ticket_id}<br><br>
+
+    📂 <b>Category:</b> ${category}<br><br>
+
+    📅 <b>Created On:</b> ${data.created_on}<br><br>
+    `;
             
             if (category === "Advance Paid but Order Not Received") {
                 successMsg += `<div style="background: #fff8f8; border-left: 4px solid #d10000; padding: 12px; margin: 12px 0; border-radius: 8px; font-size: 13px; color: #444444; line-height: 1.5; text-align: left; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
@@ -816,14 +836,22 @@ async function submitTicketWithPhoto() {
         const data = await response.json();
 
         if (data.status === "success") {
-            updateChatUI(
-                `✅ Ticket created successfully.<br><br>
-                <b>Category:</b> ${selectedTicketCategory}<br>
-                <b>Photo:</b> <a href="${uploadedPhotoUrl}" target="_blank" style="color:#d10000;text-decoration:underline;">View Uploaded Photo</a><br><br>
-                Our support team will contact you shortly.`,
-                "bot"
-            );
-        } else {
+
+            updateChatUI(`
+            ✅ <b>Ticket created successfully!</b><br><br>
+            🎫 <b>Ticket ID:</b> ${data.ticket_id}<br><br>
+            📂 <b>Category:</b> ${selectedTicketCategory}<br><br>
+            📷 <b>Photo:</b>
+            <a href="${data.photo_url}" target="_blank"
+            style="color:#d10000;text-decoration:underline;">
+            View Uploaded Photo
+            </a><br><br>
+            📅 <b>Created On:</b> ${data.created_on}<br><br>
+            📞 Our support team will contact you shortly.<br><br>
+        <b>Please save your Ticket ID for future reference.</b>
+    `, "bot");
+
+    } else {
             updateChatUI(
                 "❌ Unable to create ticket.",
                 "bot"
