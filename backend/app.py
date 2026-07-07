@@ -283,7 +283,6 @@ async def get_orders(data: OrderRequest):
             status_code=500,
             detail=str(e)
         )
-
 @app.post("/create-ticket")
 async def create_ticket(data: TicketRequest):
 
@@ -291,17 +290,18 @@ async def create_ticket(data: TicketRequest):
 
         sheet = get_sheet("Ticket")
         master_sheet = get_sheet("Master sheet")
+
         records = master_sheet.get_all_records()
 
         customer = None
 
-        # Find customer by mobile
+        # Find customer by mobile number
         for row in records:
             if normalize_phone(row.get("Mobile", "")) == normalize_phone(data.mobile):
                 customer = row
                 break
 
-        if not customer:
+        if customer is None:
             raise HTTPException(
                 status_code=404,
                 detail="Customer not found in Master Sheet"
@@ -332,15 +332,21 @@ async def create_ticket(data: TicketRequest):
 
         print("ROW DATA :", row_data)
 
+        rows_before = len(sheet.get_all_values())
+
         sheet.append_row(
             row_data,
             value_input_option="USER_ENTERED"
         )
 
-        print("Row Saved Successfully")
+        rows_after = len(sheet.get_all_values())
 
-        next_row = len(sheet.get_all_values())
+        print("Rows Before :", rows_before)
+        print("Rows After  :", rows_after)
 
+        next_row = rows_after
+
+        # Update Photo URL as hyperlink
         sheet.update(
             f"F{next_row}",
             [[f'=HYPERLINK("{data.photo_url}","View Photo")']],
@@ -348,6 +354,11 @@ async def create_ticket(data: TicketRequest):
         )
 
         print("Photo Link Updated")
+
+        all_rows = sheet.get_all_values()
+
+        print("Total Rows :", len(all_rows))
+        print("Last Row :", all_rows[-1])
 
         return {
             "status": "success",
@@ -364,40 +375,6 @@ async def create_ticket(data: TicketRequest):
             status_code=500,
             detail=str(e)
         )
-@app.post("/verify-order")
-async def verify_order(data: VerifyOrderRequest):
-
-    try:
-
-        order_no = str(data.order_no).strip().upper()
-
-        sheet = get_sheet("Master sheet")
-
-        records = sheet.get_all_records()
-
-        for row in records:
-
-            current_order = str(
-                row.get("Order No", "")
-            ).strip().upper()
-
-            if current_order == order_no:
-
-                return {
-                    "found": True
-                }
-
-        return {
-            "found": False
-        }
-
-    except Exception as e:
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-    
 @app.post("/create-reorder")
 async def create_reorder(data: ReorderRequest):
 
