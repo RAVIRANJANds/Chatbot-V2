@@ -101,7 +101,7 @@ try:
 
     client = gspread.authorize(creds)
 
-    spreadsheet = client.open_by_key(SHEET_ID)
+    spreadsheet = client.open("Testing dom data")
 
     print("\n========== CONNECTED ==========")
     print("Spreadsheet:", spreadsheet.title)
