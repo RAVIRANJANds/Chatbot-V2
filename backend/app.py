@@ -373,7 +373,7 @@ async def create_reorder(data: ReorderRequest):
         print("========== CREATE REORDER ==========")
         print("Order No :", data.order_no)
 
-        sheet = get_sheet("Re-orders")
+        sheet = get_sheet("Reorders")
         master_sheet = get_sheet("Master sheet")
 
         records = master_sheet.get_all_records()
