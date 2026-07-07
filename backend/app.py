@@ -411,6 +411,8 @@ async def create_reorder(data: ReorderRequest):
             )
 
         reorder_id = "REO" + datetime.now().strftime("%Y%m%d%H%M%S")
+        print("Writing to Ticket Sheet...")
+
 
         sheet.append_row([
             datetime.now().strftime("%Y-%m-%d %H:%M:%S"),   # Timestamp
